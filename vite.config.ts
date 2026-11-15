@@ -9,5 +9,9 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['./src/setup-tests.ts'],
+    // По умолчанию Vitest подменяет любой CSS пустой строкой. Текст нужен только импортам с ?raw.
+    css: {
+      include: [/\.css\?raw$/],
+    },
   },
 });
