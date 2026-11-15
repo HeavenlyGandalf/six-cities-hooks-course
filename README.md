@@ -1,32 +1,33 @@
-# React + TypeScript + Vite
+# Шесть городов
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Учебное React-приложение для поиска жилья в аренду.
 
-Currently, two official plugins are available:
+## Требования
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js 24.15 или новее (версия указана в `.nvmrc`: `nvm use`).
 
-## React Compiler
+## Запуск
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+cp .env.example .env.local   # сюда же ключ VITE_YANDEX_MAPS_KEY
+npm start
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Скрипты
+
+| Команда | Что делает |
+|---------|------------|
+| `npm start`, `npm run dev` | dev-сервер Vite |
+| `npm run build` | проверка типов, затем production-сборка в `dist/` |
+| `npm run preview` | раздаёт собранный `dist/` |
+| `npm run lint` | ESLint по `src` (пресет htmlacademy и react-hooks) |
+| `npm run typecheck` | проверка типов TypeScript 7 (`npx tsc` запускает версию 6, им типы не проверять) |
+| `npm test` | тесты Vitest один раз |
+
+## Переменные окружения
+
+`.env.local` не коммитится. Пример — в `.env.example`:
+
+- `VITE_YANDEX_MAPS_KEY` — ключ JS API 3.0 Яндекс Карт;
+- `VITE_API_JITTER` — режим задержек и ошибок учебного сервера (`false` по умолчанию).
