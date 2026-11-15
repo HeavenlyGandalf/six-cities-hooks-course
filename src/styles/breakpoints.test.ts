@@ -1,13 +1,19 @@
 import {describe, expect, it} from 'vitest';
 import {BREAKPOINTS} from '../const';
 
+interface MediaCondition {
+  file: string;
+  condition: string;
+}
+
 interface MediaWidth {
   file: string;
   width: number;
 }
 
 // Текст стилей как строка: ?raw отдаёт содержимое, test.css.include в vite.config.ts не даёт Vitest его обнулить.
-const stylesheets = import.meta.glob<string>('./**/*.css', {
+// Берётся весь CSS под src, чтобы будущие стили компонентов тоже проверялись.
+const stylesheets = import.meta.glob<string>('/src/**/*.css', {
   query: '?raw',
   import: 'default',
   eager: true,
@@ -15,22 +21,24 @@ const stylesheets = import.meta.glob<string>('./**/*.css', {
 
 // Условие правила: от @media до открывающей скобки блока. Тело правила не берётся.
 const MEDIA_CONDITION_PATTERN = /@media[^{]*\{/g;
-const WIDTH_FEATURE_PATTERN = /\((?:min|max)-width:\s*(\d+)px\)/g;
+const WIDTH_FEATURE_PATTERN = /\(\s*(?:min|max)-width\s*:\s*(\d+)px\s*\)/g;
+const WIDTH_MENTION = 'width';
 
 const knownWidths = new Set<number>(Object.values(BREAKPOINTS));
 
-const collectMediaWidths = (file: string, css: string): MediaWidth[] =>
-  Array.from(css.matchAll(MEDIA_CONDITION_PATTERN)).flatMap(([condition]) =>
-    Array.from(condition.matchAll(WIDTH_FEATURE_PATTERN)).map(([, width]) => ({
-      file,
-      width: Number(width),
-    })),
-  );
+const collectMediaConditions = (file: string, css: string): MediaCondition[] =>
+  Array.from(css.matchAll(MEDIA_CONDITION_PATTERN)).map(([condition]) => ({file, condition}));
+
+const parseWidths = (condition: string): number[] =>
+  Array.from(condition.matchAll(WIDTH_FEATURE_PATTERN)).map(([, width]) => Number(width));
 
 const files = Object.entries(stylesheets);
-const mediaWidths = files.flatMap(([file, css]) => collectMediaWidths(file, css));
+const mediaConditions = files.flatMap(([file, css]) => collectMediaConditions(file, css));
+const mediaWidths: MediaWidth[] = mediaConditions.flatMap(({file, condition}) =>
+  parseWidths(condition).map((width) => ({file, width})),
+);
 
-describe('@media widths in src/styles', () => {
+describe('@media widths in src', () => {
   it('finds stylesheets', () => {
     expect(files.length).toBeGreaterThan(0);
   });
@@ -43,6 +51,14 @@ describe('@media widths in src/styles', () => {
 
   it('finds widths in @media conditions', () => {
     expect(mediaWidths.length).toBeGreaterThan(0);
+  });
+
+  it('parses a width from every @media condition that mentions width', () => {
+    const unparsedConditions = mediaConditions.filter(
+      ({condition}) => condition.includes(WIDTH_MENTION) && parseWidths(condition).length === 0,
+    );
+
+    expect(unparsedConditions).toEqual([]);
   });
 
   it('uses only widths from BREAKPOINTS', () => {
