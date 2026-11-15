@@ -1,7 +1,7 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
+import {StrictMode} from 'react';
+import {createRoot} from 'react-dom/client';
 import App from './app';
-import { ROOT_ELEMENT_ID } from './const';
+import {ROOT_ELEMENT_ID} from './const';
 
 const rootElement = document.getElementById(ROOT_ELEMENT_ID);
 
