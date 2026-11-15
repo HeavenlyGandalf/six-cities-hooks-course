@@ -1,0 +1,40 @@
+{
+  "name": "six-cities",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "npm run typecheck && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src",
+    "typecheck": "node node_modules/typescript7/bin/tsc -p .",
+    "test": "vitest run"
+  },
+  "engines": {
+    "node": ">=24.15"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.10",
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "eslint": "^10.15.0",
+    "eslint-config-htmlacademy": "^11.0.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "jsdom": "^31.0.1",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript7": "npm:typescript@^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  }
+}
