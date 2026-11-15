@@ -1,0 +1,71 @@
+import {render, screen} from '@testing-library/react';
+import {describe, expect, it} from 'vitest';
+import type {OfferPreview} from '../../types/offer';
+import OfferCard from './offer-card';
+
+const baseOffer: OfferPreview = {
+  id: 'test-offer-id',
+  title: 'Test apartment',
+  type: 'apartment',
+  price: 120,
+  previewImage: '/img/offers/1.jpg',
+  city: {name: 'Paris', location: {latitude: 48.85661, longitude: 2.351499, zoom: 13}},
+  location: {latitude: 48.8686, longitude: 2.3425, zoom: 16},
+  isFavorite: false,
+  isPremium: false,
+  rating: 4,
+};
+
+function renderCard(override: Partial<OfferPreview> = {}) {
+  return render(<OfferCard offer={{...baseOffer, ...override}} />);
+}
+
+describe('OfferCard', () => {
+  it('renders title as a link to the offer page, price and type', () => {
+    const {container} = renderCard();
+
+    expect(screen.getByRole('link', {name: 'Test apartment'})).toHaveAttribute('href', '/offer/test-offer-id');
+    expect(container.querySelector('.place-card__price')).toHaveTextContent('€120 / night');
+    expect(screen.getByText('apartment')).toHaveClass('place-card__type');
+  });
+
+  it('has no Premium badge for a regular offer', () => {
+    renderCard({isPremium: false});
+
+    expect(screen.queryByText('Premium')).not.toBeInTheDocument();
+  });
+
+  it('shows Premium badge for a premium offer', () => {
+    renderCard({isPremium: true});
+
+    expect(screen.getByText('Premium')).toHaveClass('place-card__badge');
+  });
+
+  it.each([
+    [3.1, '60%', '3'],
+    [4.5, '100%', '5'],
+    [4, '80%', '4'],
+  ])('rating %s fills %s of stars', (rating, width, stars) => {
+    renderCard({rating});
+
+    const ratingElement = screen.getByLabelText(`Rating ${stars} of 5`);
+    const fill = ratingElement.querySelector('.rating__fill');
+    expect(fill).toHaveStyle({'--rating': width});
+  });
+
+  it('marks a favorite offer bookmark as active', () => {
+    renderCard({isFavorite: true});
+
+    const bookmark = screen.getByRole('button', {name: 'Remove from favorites'});
+    expect(bookmark).toHaveClass('bookmark--active');
+    expect(bookmark).toHaveAttribute('aria-pressed', 'true');
+  });
+
+  it('keeps a regular offer bookmark inactive', () => {
+    renderCard({isFavorite: false});
+
+    const bookmark = screen.getByRole('button', {name: 'Add to favorites'});
+    expect(bookmark).not.toHaveClass('bookmark--active');
+    expect(bookmark).toHaveAttribute('aria-pressed', 'false');
+  });
+});
