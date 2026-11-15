@@ -1,0 +1,16 @@
+# Зависимости и сборка
+node_modules/
+dist/
+coverage/
+
+# Локальные переменные окружения (ключ Яндекс Карт)
+.env.local
+.env.*.local
+
+# Редакторы и система
+.idea/
+.vscode/
+.DS_Store
+
+# Логи
+*.log
