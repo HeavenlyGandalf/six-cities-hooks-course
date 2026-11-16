@@ -1,8 +1,8 @@
 import type {JSX} from 'react';
-import {APP_TITLE} from './const';
+import MainPage from '../../pages/main/main-page';
 
 function App(): JSX.Element {
-  return <h1>{APP_TITLE}</h1>;
+  return <MainPage />;
 }
 
 export default App;
