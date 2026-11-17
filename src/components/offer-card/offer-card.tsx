@@ -3,8 +3,12 @@ import {AppRoute, CURRENCY_SIGN, Rating, UiText} from '../../const';
 import type {OfferPreview} from '../../types/offer';
 import {getRatingStars, getRatingWidth} from '../../utils/rating';
 
+// grid - карточка в сетке (главная, соседние), row - компактная строка (избранное).
+export type OfferCardVariant = 'grid' | 'row';
+
 interface OfferCardProps {
   offer: OfferPreview;
+  variant?: OfferCardVariant;
 }
 
 // Размеры превью из вёрстки (course/markup/main.html).
@@ -13,12 +17,22 @@ const PreviewSize = {
   Height: 300,
 } as const;
 
-function OfferCard({offer}: OfferCardProps): JSX.Element {
+function OfferCard({offer, variant = 'grid'}: OfferCardProps): JSX.Element {
   const {id, title, type, price, previewImage, isFavorite, isPremium, rating} = offer;
+  const isRow = variant === 'row';
   const bookmarkClassName = `bookmark place-card__bookmark${isFavorite ? ' bookmark--active' : ''}`;
 
+  const bookmark = (
+    <button className={bookmarkClassName} type="button" aria-pressed={isFavorite}>
+      <svg aria-hidden="true"><use href="#icon-bookmark" /></svg>
+      <span className="visually-hidden">
+        {isFavorite ? UiText.RemoveFromFavorites : UiText.AddToFavorites}
+      </span>
+    </button>
+  );
+
   return (
-    <article className="place-card">
+    <article className={`place-card${isRow ? ' place-card--row' : ''}`}>
       <div className="place-card__image-wrapper">
         <img
           className="place-card__image"
@@ -29,12 +43,7 @@ function OfferCard({offer}: OfferCardProps): JSX.Element {
           loading="lazy"
         />
         {isPremium && <span className="badge place-card__badge">{UiText.Premium}</span>}
-        <button className={bookmarkClassName} type="button" aria-pressed={isFavorite}>
-          <svg aria-hidden="true"><use href="#icon-bookmark" /></svg>
-          <span className="visually-hidden">
-            {isFavorite ? UiText.RemoveFromFavorites : UiText.AddToFavorites}
-          </span>
-        </button>
+        {!isRow && bookmark}
       </div>
       <div className="place-card__info">
         <p className="place-card__price"><b>{CURRENCY_SIGN}{price}</b> {UiText.PerNight}</p>
@@ -48,6 +57,8 @@ function OfferCard({offer}: OfferCardProps): JSX.Element {
         <h3 className="place-card__title"><a href={`${AppRoute.Offer}/${id}`}>{title}</a></h3>
         <p className="place-card__type">{type}</p>
       </div>
+      {/* В строке закладка стоит после .place-card__info: под неё отступ справа в main.css. */}
+      {isRow && bookmark}
     </article>
   );
 }
