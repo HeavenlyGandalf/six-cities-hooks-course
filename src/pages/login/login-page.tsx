@@ -64,6 +64,8 @@ function LoginPage(): JSX.Element {
             />
             <span className="login__city-text">
               <span className="login__city-caption">{UiText.Explore}</span>
+              {/* Пробел между словами, как в вёрстке: иначе ссылка читается как «ExploreParis». */}
+              {' '}
               <span className="login__city-name">{DEFAULT_CITY}</span>
             </span>
           </a>
