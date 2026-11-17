@@ -51,6 +51,21 @@ export const AppRoute = {
 
 export const CURRENCY_SIGN = '€';
 
+// На странице предложения показывается не больше MAX_IMAGES фото (course/PROJECT.md).
+export const MAX_IMAGES = 6;
+
+// Фото города-ссылки на странице входа. Случайный город появится в истории 7.2.
+export const LOGIN_CITY_IMAGE = '/img/offers/15.jpg';
+
+// Длина текста отзыва, символов (course/markup/offer.html).
+export const ReviewLength = {
+  Min: 50,
+  Max: 300,
+} as const;
+
+// Подписи звёзд формы отзыва: индекс + 1 - значение оценки.
+export const RATING_TITLES = ['terribly', 'badly', 'not bad', 'good', 'perfect'] as const;
+
 // Тексты интерфейса, как в course/markup.
 export const UiText = {
   LogoLabel: 'Шесть городов - на главную',
@@ -74,4 +89,38 @@ export const UiText = {
   RemoveFromFavorites: 'Remove from favorites',
   RatingPrefix: 'Rating',
   RatingOf: 'of',
+  Explore: 'Explore',
+  EmailLabel: 'E-mail',
+  EmailPlaceholder: 'you@example.com',
+  PasswordLabel: 'Password',
+  PasswordPlaceholder: 'Password',
+  PasswordHint: 'Password must contain at least one letter and one digit',
+  NotFoundCode: '404',
+  NotFoundTitle: 'Not Found',
+  NotFoundText: 'We could not find this page. It may have been moved, or the address has a typo.',
+  NotFoundBackText: 'Let\u2019s get you back to the places to stay.',
+  BackToMain: 'Back to main page',
+  FavoritesTitle: 'Saved listing',
+  PhotosLabel: 'Photos',
+  Photo: 'photo',
+  BookingLabel: 'Booking',
+  GoodsTitle: 'What\u2019s inside',
+  HostTitle: 'Meet the host',
+  Pro: 'Pro',
+  Bedroom: 'Bedroom',
+  Bedrooms: 'Bedrooms',
+  MaxAdultsPrefix: 'Max',
+  Adult: 'adult',
+  Adults: 'adults',
+  ReviewsTitle: 'Reviews \u00b7',
+  ReviewLoginSuffix: 'to leave a review',
+  YourReview: 'Your review',
+  YourRating: 'Your rating',
+  ReviewTextLabel: 'Review text',
+  ReviewPlaceholder: 'Tell how was your stay, what you like and what can be improved',
+  ReviewHint: 'To submit review please make sure to set rating and describe your stay with at least',
+  ReviewHintMin: `${String(ReviewLength.Min)} characters`,
+  Submit: 'Submit',
+  NearMapLabel: 'Map of places nearby',
+  NearPlacesTitle: 'Other places in the neighbourhood',
 } as const;
