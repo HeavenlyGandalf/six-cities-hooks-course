@@ -27,4 +27,20 @@ describe('OffersList', () => {
     expect(screen.getAllByRole('article')).toHaveLength(3);
     expect(screen.getByRole('link', {name: 'Second offer'})).toBeInTheDocument();
   });
+
+  it('wraps cards in places-grid by default', () => {
+    const {container} = render(<OffersList offers={[createOffer('a', 'First offer')]} />);
+
+    expect(container.firstElementChild).toHaveClass('places-grid');
+  });
+
+  it('uses the given list class and card variant', () => {
+    const {container} = render(
+      <OffersList offers={[createOffer('a', 'First offer')]} className="favorites__places" variant="row" />,
+    );
+
+    expect(container.firstElementChild).toHaveClass('favorites__places');
+    expect(container.firstElementChild).not.toHaveClass('places-grid');
+    expect(screen.getByRole('article')).toHaveClass('place-card--row');
+  });
 });
