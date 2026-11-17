@@ -6,12 +6,14 @@ import Logo from '../logo/logo';
 interface HeaderProps {
   user: AuthInfo | null;
   favoriteCount: number;
+  // true на странице входа: ссылка Sign in отмечается текущей (course/markup/login.html).
+  isSignInCurrent?: boolean;
 }
 
 // Размер аватара в шапке из вёрстки, px.
 const AVATAR_SIZE = 32;
 
-function Header({user, favoriteCount}: HeaderProps): JSX.Element {
+function Header({user, favoriteCount, isSignInCurrent = false}: HeaderProps): JSX.Element {
   return (
     <header className="header">
       <div className="container header__inner">
@@ -34,7 +36,9 @@ function Header({user, favoriteCount}: HeaderProps): JSX.Element {
               </a>
             </>
           ) : (
-            <a className="user-nav__link" href={AppRoute.Login}>{UiText.SignIn}</a>
+            <a className="user-nav__link" href={AppRoute.Login} aria-current={isSignInCurrent ? 'page' : undefined}>
+              {UiText.SignIn}
+            </a>
           )}
         </nav>
       </div>
