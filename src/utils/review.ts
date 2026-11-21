@@ -1,4 +1,5 @@
 import {Rating, ReviewLength} from '../const';
+import type {ReviewDraft} from '../types/review';
 
 // Наименьшая оценка, которую можно выбрать звёздами (course/PROJECT.md §4.3).
 const MIN_REVIEW_RATING = 1;
@@ -20,4 +21,18 @@ export function isReviewValid(rating: number | null, text: string): boolean {
     && rating >= MIN_REVIEW_RATING
     && rating <= Rating.Max
     && isReviewTextValid(text);
+}
+
+// Пустая форма: с неё начинается черновик и к ней он возвращается после отправки.
+export const EMPTY_REVIEW_DRAFT: ReviewDraft = {rating: null, text: ''};
+
+// Проверка формы черновика из localStorage. Значения не проверяются на допустимость:
+// черновик может быть незаконченным, а Submit проверяет isReviewValid.
+export function isReviewDraft(value: unknown): value is ReviewDraft {
+  return typeof value === 'object'
+    && value !== null
+    && 'rating' in value
+    && 'text' in value
+    && (value.rating === null || typeof value.rating === 'number')
+    && typeof value.text === 'string';
 }
