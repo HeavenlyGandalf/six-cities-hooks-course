@@ -29,6 +29,12 @@ const {fixtureOffers} = vi.hoisted(() => {
 vi.mock('../../mocks/offers', () => ({offers: fixtureOffers}));
 
 describe('MainPage', () => {
+  it('puts the active city into the tab title', () => {
+    render(<MainPage />);
+
+    expect(document.title).toBe('Six Cities - Paris');
+  });
+
   it('shows the number of places in the active city', () => {
     render(<MainPage />);
 

@@ -6,6 +6,12 @@ import FavoritesPage from './favorites-page';
 const favoriteOffers = offers.filter((offer) => offer.isFavorite);
 
 describe('FavoritesPage', () => {
+  it('shows the favorites count in the tab title', () => {
+    render(<FavoritesPage />);
+
+    expect(document.title).toBe(`Six Cities - Favorites (${String(favoriteOffers.length)})`);
+  });
+
   it('shows only favorite offers as row cards', () => {
     render(<FavoritesPage />);
 

@@ -5,6 +5,7 @@ import OffersList from '../../components/offers-list/offers-list';
 import {AppRoute, CITIES, DEFAULT_CITY, DEFAULT_SORT, SORT_OPTIONS, UiText} from '../../const';
 import {offers} from '../../mocks/offers';
 import {authInfo} from '../../mocks/user';
+import {formatPageTitle} from '../../utils/format';
 
 // Этап 2 статичный: город и сортировка зафиксированы, обработчиков нет.
 // Ссылки городов ведут на главную, выбор города появится вместе с маршрутизацией и store.
@@ -15,6 +16,7 @@ function MainPage(): JSX.Element {
 
   return (
     <div className="page">
+      <title>{formatPageTitle(activeCity)}</title>
       <Header user={authInfo} favoriteCount={favoriteCount} />
 
       <main className="page__main">
