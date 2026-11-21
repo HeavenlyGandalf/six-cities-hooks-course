@@ -12,6 +12,7 @@ import './styles/pages/states.css';
 import './styles/pages/favorites.css';
 import './styles/pages/login.css';
 import './styles/pages/not-found.css';
+import './styles/adaptive.css';
 
 const rootElement = document.getElementById(ROOT_ELEMENT_ID);
 
