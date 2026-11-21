@@ -23,6 +23,12 @@ describe('Header', () => {
     expect(screen.queryByRole('link', {name: 'Sign in'})).not.toBeInTheDocument();
   });
 
+  it('keeps the full email in the link title, because the visible email can be cut with an ellipsis', () => {
+    renderWithRouter(<Header user={user} favoriteCount={0} />);
+
+    expect(screen.getByText('test.user@example.com').closest('a')).toHaveAttribute('title', 'test.user@example.com');
+  });
+
   it('shows a Sign in link to /login for a guest', () => {
     renderWithRouter(<Header user={null} favoriteCount={0} />);
 

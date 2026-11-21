@@ -22,7 +22,8 @@ function Header({user, favoriteCount, isSignInCurrent = false}: HeaderProps): JS
         <nav className="user-nav" aria-label={UiText.UserNavLabel}>
           {user ? (
             <>
-              <Link className="user-nav__link" to={AppRoute.Favorites}>
+              {/* Email сокращается многоточием (main.css), title показывает адрес целиком (ОВ-6). */}
+              <Link className="user-nav__link" to={AppRoute.Favorites} title={user.email}>
                 <img className="user-nav__avatar" src={user.avatarUrl} width={AVATAR_SIZE} height={AVATAR_SIZE} alt="" />
                 <span className="user-nav__email">{user.email}</span>
                 <span className="user-nav__count" aria-label={`${UiText.FavoriteCountLabel} ${String(favoriteCount)}`}>
