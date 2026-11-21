@@ -96,7 +96,7 @@ describe('OfferPage', () => {
     expect(within(section).queryByRole('button', {name: 'Submit'})).not.toBeInTheDocument();
   });
 
-  it('shows 3 nearby offers without the current one and a map placeholder', () => {
+  it('shows 3 nearby offers without the current one and a map scheme with 3 + 1 pins', () => {
     renderOfferPage(offer.id);
 
     const near = screen.getByRole('region', {name: 'Other places in the neighbourhood'});
@@ -105,8 +105,10 @@ describe('OfferPage', () => {
     within(near).getAllByRole('link').forEach((link) => {
       expect(link).not.toHaveAttribute('href', `/offer/${offer.id}`);
     });
-    expect(within(screen.getByRole('region', {name: 'Map of places nearby'})).getByText('Здесь - Яндекс Карты'))
-      .toBeInTheDocument();
+    const map = screen.getByRole('region', {name: 'Map of places nearby'});
+    expect(within(map).getByText('Здесь - Яндекс Карты')).toBeInTheDocument();
+    expect(map.querySelectorAll('.map__pin:not(.map__pin--active)')).toHaveLength(cards.length);
+    expect(map.querySelectorAll('.map__pin--active')).toHaveLength(1);
   });
 
   it('does not highlight a nearby card on hover or focus', async () => {

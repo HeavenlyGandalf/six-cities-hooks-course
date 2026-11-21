@@ -2,6 +2,7 @@ import type {JSX} from 'react';
 import {useParams} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
+import MapStub from '../../components/map-stub/map-stub';
 import OfferGallery from '../../components/offer-gallery/offer-gallery';
 import OfferHost from '../../components/offer-host/offer-host';
 import OfferReviews from '../../components/offer-reviews/offer-reviews';
@@ -91,11 +92,9 @@ function OfferContent({offer}: OfferContentProps): JSX.Element {
           </div>
         </div>
 
-        {/* Заглушка карты без маркеров: Яндекс Карты подключаются в эпике 5. */}
+        {/* Статичная схема из вёрстки до Яндекс Карт (история 5.4). */}
         <section className="container offer__map" aria-label={UiText.NearMapLabel}>
-          <div className="map">
-            <span className="map__note">{UiText.MapNote}</span>
-          </div>
+          <MapStub pinCount={nearOffers.length} />
         </section>
 
         <section className="container near-places" aria-labelledby="near-title">
