@@ -36,11 +36,16 @@ describe('formatReviewDate', () => {
   it('uses UTC near the end of a day', () => {
     expect(formatReviewDate('2019-04-30T23:30:00Z')).toBe('April 2019');
   });
+
+  it('uses UTC near the start of a day', () => {
+    expect(formatReviewDate('2019-05-01T00:30:00Z')).toBe('May 2019');
+  });
 });
 
 describe('toDateAttribute', () => {
   it('returns YYYY-MM-DD in UTC', () => {
     expect(toDateAttribute('2019-04-30T23:30:00Z')).toBe('2019-04-30');
     expect(toDateAttribute('2019-04-24T14:13:56.569Z')).toBe('2019-04-24');
+    expect(toDateAttribute('2019-05-01T00:30:00Z')).toBe('2019-05-01');
   });
 });
