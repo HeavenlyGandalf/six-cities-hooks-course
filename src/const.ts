@@ -127,3 +127,12 @@ export const UiText = {
   NearMapLabel: 'Map of places nearby',
   NearPlacesTitle: 'Other places in the neighbourhood',
 } as const;
+
+// Заголовки вкладок (course/TASKS.md, M4): префикс и названия страниц без данных.
+// Город и название предложения приходят из данных страницы.
+export const PageTitle = {
+  Prefix: 'Six Cities - ',
+  Favorites: 'Favorites',
+  Login: 'Login',
+  NotFound: '404',
+} as const;
