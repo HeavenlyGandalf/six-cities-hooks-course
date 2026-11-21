@@ -2,7 +2,7 @@ import {screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {Route, Routes} from 'react-router';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {AppRoute} from '../../const';
+import {AppRoute, MAX_REVIEWS} from '../../const';
 import {fullOffers} from '../../mocks/offer';
 import {offers} from '../../mocks/offers';
 import {renderWithRouter} from '../../mocks/render-with-router';
@@ -91,12 +91,14 @@ describe('OfferPage', () => {
     renderOfferPage(offer.id);
 
     const section = screen.getByRole('region', {name: `Reviews · ${String(reviews.length)}`});
-    expect(within(section).getAllByRole('listitem')).toHaveLength(reviews.length);
+    // В моках больше MAX_REVIEWS отзывов, поэтому на странице виден лимит.
+    expect(reviews.length).toBeGreaterThan(MAX_REVIEWS);
+    expect(within(section).getAllByRole('listitem')).toHaveLength(MAX_REVIEWS);
     expect(within(section).getByRole('link', {name: 'Sign in'})).toHaveAttribute('href', '/login');
     expect(within(section).queryByRole('button', {name: 'Submit'})).not.toBeInTheDocument();
   });
 
-  it('shows 3 nearby offers without the current one and a map placeholder', () => {
+  it('shows 3 nearby offers without the current one and a map scheme with 3 + 1 pins', () => {
     renderOfferPage(offer.id);
 
     const near = screen.getByRole('region', {name: 'Other places in the neighbourhood'});
@@ -105,8 +107,10 @@ describe('OfferPage', () => {
     within(near).getAllByRole('link').forEach((link) => {
       expect(link).not.toHaveAttribute('href', `/offer/${offer.id}`);
     });
-    expect(within(screen.getByRole('region', {name: 'Map of places nearby'})).getByText('Здесь - Яндекс Карты'))
-      .toBeInTheDocument();
+    const map = screen.getByRole('region', {name: 'Map of places nearby'});
+    expect(within(map).getByText('Здесь - Яндекс Карты')).toBeInTheDocument();
+    expect(map.querySelectorAll('.map__pin:not(.map__pin--active)')).toHaveLength(cards.length);
+    expect(map.querySelectorAll('.map__pin--active')).toHaveLength(1);
   });
 
   it('does not highlight a nearby card on hover or focus', async () => {

@@ -1,5 +1,5 @@
 import {Rating, ReviewLength} from '../const';
-import type {ReviewDraft} from '../types/review';
+import type {Review, ReviewDraft} from '../types/review';
 
 // Наименьшая оценка, которую можно выбрать звёздами (course/PROJECT.md §4.3).
 const MIN_REVIEW_RATING = 1;
@@ -35,4 +35,11 @@ export function isReviewDraft(value: unknown): value is ReviewDraft {
     && 'text' in value
     && (value.rating === null || typeof value.rating === 'number')
     && typeof value.text === 'string';
+}
+
+// Отзывы для списка: новые сверху, не больше limit. Исходный массив не меняется.
+export function getLatestReviews(reviews: Review[], limit: number): Review[] {
+  return [...reviews]
+    .sort((first, second) => Date.parse(second.date) - Date.parse(first.date))
+    .slice(0, limit);
 }

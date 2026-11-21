@@ -72,7 +72,10 @@ export const CURRENCY_SIGN = '€';
 export const MAX_IMAGES = 6;
 
 // Соседних предложений на странице предложения (course/PROJECT.md).
-export const MAX_NEAR_PLACES = 3;
+export const NEARBY_COUNT = 3;
+
+// Отзывов в списке на странице предложения, новые сверху (course/PROJECT.md §4.2).
+export const MAX_REVIEWS = 10;
 
 // Фото города-ссылки на странице входа. Случайный город появится в истории 7.2.
 export const LOGIN_CITY_IMAGE = '/img/offers/15.jpg';

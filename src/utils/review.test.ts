@@ -1,6 +1,7 @@
 import {Rating, RATING_TITLES} from '../const';
 import {describe, expect, it} from 'vitest';
-import {getReviewLength, isReviewDraft, isReviewTextValid, isReviewValid} from './review';
+import type {Review} from '../types/review';
+import {getLatestReviews, getReviewLength, isReviewDraft, isReviewTextValid, isReviewValid} from './review';
 
 const textOf = (length: number) => 'a'.repeat(length);
 
@@ -67,5 +68,35 @@ describe('isReviewDraft', () => {
 describe('rating stars', () => {
   it('match the rating limit: one title per star', () => {
     expect(RATING_TITLES).toHaveLength(Rating.Max);
+  });
+});
+
+describe('getLatestReviews', () => {
+  const createReview = (id: string, date: string): Review => ({
+    id,
+    date,
+    user: {name: 'Max', avatarUrl: '/img/avatars/avatar-max.svg', isPro: false},
+    comment: 'Quiet and cozy.',
+    rating: 4,
+  });
+
+  const reviews = [
+    createReview('old', '2019-04-24T14:13:56.569Z'),
+    createReview('new', '2021-01-10T08:00:00.000Z'),
+    createReview('middle', '2020-06-01T12:00:00.000Z'),
+  ];
+
+  it('puts newer reviews first', () => {
+    expect(getLatestReviews(reviews, reviews.length).map(({id}) => id)).toEqual(['new', 'middle', 'old']);
+  });
+
+  it('keeps no more than limit newest reviews', () => {
+    expect(getLatestReviews(reviews, 2).map(({id}) => id)).toEqual(['new', 'middle']);
+  });
+
+  it('does not change the given array', () => {
+    getLatestReviews(reviews, reviews.length);
+
+    expect(reviews.map(({id}) => id)).toEqual(['old', 'new', 'middle']);
   });
 });
