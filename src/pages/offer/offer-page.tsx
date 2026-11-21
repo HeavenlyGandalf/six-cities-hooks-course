@@ -6,7 +6,7 @@ import OfferGallery from '../../components/offer-gallery/offer-gallery';
 import OfferHost from '../../components/offer-host/offer-host';
 import OfferReviews from '../../components/offer-reviews/offer-reviews';
 import OffersList from '../../components/offers-list/offers-list';
-import {CURRENCY_SIGN, MAX_NEAR_PLACES, UiText} from '../../const';
+import {CURRENCY_SIGN, NEARBY_COUNT, UiText} from '../../const';
 import {fullOffers} from '../../mocks/offer';
 import {offers} from '../../mocks/offers';
 import {reviews} from '../../mocks/reviews';
@@ -24,7 +24,7 @@ interface OfferContentProps {
 // Предложение, отзывы и соседние пока из моков; загрузка с сервера - этап 7.
 function OfferContent({offer}: OfferContentProps): JSX.Element {
   const {title, type, price, isFavorite, isPremium, rating, description, bedrooms, goods, host, images, maxAdults} = offer;
-  const nearOffers = getNearOffers(offers, offer.id, MAX_NEAR_PLACES);
+  const nearOffers = getNearOffers(offers, offer.id, NEARBY_COUNT);
   const favoriteCount = offers.filter((item) => item.isFavorite).length;
   const bookmarkClassName = `bookmark offer-summary__bookmark${isFavorite ? ' bookmark--active' : ''}`;
 
