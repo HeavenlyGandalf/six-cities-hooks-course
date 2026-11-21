@@ -1,7 +1,7 @@
 import {render, screen} from '@testing-library/react';
 import {describe, expect, it} from 'vitest';
 import type {OfferPreview} from '../../types/offer';
-import OfferCard from './offer-card';
+import OfferCard, {type OfferCardVariant} from './offer-card';
 
 const baseOffer: OfferPreview = {
   id: 'test-offer-id',
@@ -16,8 +16,8 @@ const baseOffer: OfferPreview = {
   rating: 4,
 };
 
-function renderCard(override: Partial<OfferPreview> = {}) {
-  return render(<OfferCard offer={{...baseOffer, ...override}} />);
+function renderCard(override: Partial<OfferPreview> = {}, variant?: OfferCardVariant) {
+  return render(<OfferCard offer={{...baseOffer, ...override}} variant={variant} />);
 }
 
 describe('OfferCard', () => {
@@ -67,5 +67,21 @@ describe('OfferCard', () => {
     const bookmark = screen.getByRole('button', {name: 'Add to favorites'});
     expect(bookmark).not.toHaveClass('bookmark--active');
     expect(bookmark).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('renders a grid card with the bookmark inside the image wrapper by default', () => {
+    const {container} = renderCard();
+
+    expect(screen.getByRole('article')).not.toHaveClass('place-card--row');
+    expect(container.querySelector('.place-card__image-wrapper .place-card__bookmark')).toBeInTheDocument();
+  });
+
+  it('renders a row card with the bookmark after the info block', () => {
+    const {container} = renderCard({}, 'row');
+
+    const article = screen.getByRole('article');
+    expect(article).toHaveClass('place-card', 'place-card--row');
+    expect(container.querySelector('.place-card__image-wrapper .place-card__bookmark')).not.toBeInTheDocument();
+    expect(container.querySelector('.place-card__info + .place-card__bookmark')).toBeInTheDocument();
   });
 });

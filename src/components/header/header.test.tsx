@@ -26,5 +26,12 @@ describe('Header', () => {
 
     expect(screen.getByRole('link', {name: 'Sign in'})).toHaveAttribute('href', '/login');
     expect(screen.queryByRole('link', {name: 'Sign out'})).not.toBeInTheDocument();
+    expect(screen.getByRole('link', {name: 'Sign in'})).not.toHaveAttribute('aria-current');
+  });
+
+  it('marks Sign in as the current page on the login page', () => {
+    render(<Header user={null} favoriteCount={0} isSignInCurrent />);
+
+    expect(screen.getByRole('link', {name: 'Sign in'})).toHaveAttribute('aria-current', 'page');
   });
 });

@@ -1,15 +1,19 @@
 import type {JSX} from 'react';
 import type {OfferPreview} from '../../types/offer';
-import OfferCard from '../offer-card/offer-card';
+import OfferCard, {type OfferCardVariant} from '../offer-card/offer-card';
 
 interface OffersListProps {
   offers: OfferPreview[];
+  // Класс обёртки целиком: places-grid на главной, places-grid near-places__list у соседних,
+  // favorites__places в избранном.
+  className?: string;
+  variant?: OfferCardVariant;
 }
 
-function OffersList({offers}: OffersListProps): JSX.Element {
+function OffersList({offers, className = 'places-grid', variant}: OffersListProps): JSX.Element {
   return (
-    <div className="places-grid">
-      {offers.map((offer) => <OfferCard key={offer.id} offer={offer} />)}
+    <div className={className}>
+      {offers.map((offer) => <OfferCard key={offer.id} offer={offer} variant={variant} />)}
     </div>
   );
 }
