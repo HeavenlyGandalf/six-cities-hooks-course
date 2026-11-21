@@ -5,6 +5,13 @@ import {reviews} from '../../mocks/reviews';
 import OfferPage from './offer-page';
 
 describe('OfferPage', () => {
+  it('puts the offer title into the tab title', () => {
+    render(<OfferPage />);
+
+    expect(document.title).toContain(offer.title);
+    expect(document.title).toBe(`Six Cities - ${offer.title}`);
+  });
+
   it('shows no more than 6 photos of 7', () => {
     const {container} = render(<OfferPage />);
 
