@@ -198,6 +198,19 @@ describe('MainPage', () => {
       expect(getMap()).not.toBeInTheDocument();
     });
 
+    it('resets the active card when Map is chosen on a phone', async () => {
+      const user = userEvent.setup();
+      renderOnPhone();
+      const [firstCard] = screen.getAllByRole('article');
+      await user.hover(firstCard);
+      expect(firstCard).toHaveClass('place-card--active');
+
+      fireEvent.click(screen.getByRole('radio', {name: UiText.ViewMap}));
+      fireEvent.click(screen.getByRole('radio', {name: UiText.ViewList}));
+
+      expect(document.querySelectorAll('.place-card--active')).toHaveLength(0);
+    });
+
     it('shows both list and map without the switch on a desktop', () => {
       renderWithRouter(<MainPage />);
 
