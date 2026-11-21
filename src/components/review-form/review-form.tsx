@@ -1,43 +1,88 @@
-import type {JSX} from 'react';
+import {useState, type ChangeEvent, type JSX, type SubmitEvent} from 'react';
 import {RATING_TITLES, ReviewLength, UiText} from '../../const';
+import {isReviewTextValid, isReviewValid} from '../../utils/review';
 
 // Строк в поле отзыва, как в вёрстке (course/markup/offer.html).
 const TEXTAREA_ROWS = 5;
 
-// Статичная форма из вёрстки: поля неуправляемые, Submit выключен.
-// Состояние, проверка и отправка появятся в истории 4.1.
+const HINT_ID = 'review-hint';
+const ERROR_ID = 'review-error';
+
+// Отправка с задержкой и блокировкой формы появится в H8 (история 4.4).
+// Пока Submit имитирует успех: форма сразу очищается.
 function ReviewForm(): JSX.Element {
+  const [rating, setRating] = useState<number | null>(null);
+  const [text, setText] = useState('');
+  // Поле покидали хотя бы раз: до этого ошибка длины не показывается.
+  const [isTextTouched, setIsTextTouched] = useState(false);
+
+  const isValid = isReviewValid(rating, text);
+  const hasTextError = isTextTouched && text !== '' && !isReviewTextValid(text);
+
+  const handleTextChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+    setText(event.target.value);
+  };
+
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!isValid) {
+      return;
+    }
+    setRating(null);
+    setText('');
+    setIsTextTouched(false);
+  };
+
   return (
-    <form className="review-form" action="#" method="post">
+    <form className="review-form" action="#" method="post" onSubmit={handleSubmit}>
       <h3 className="review-form__title">{UiText.YourReview}</h3>
       <fieldset className="rating-input">
         <legend className="rating-input__legend">{UiText.YourRating}</legend>
         <div className="rating-input__stars">
-          {RATING_TITLES.map((title, index) => (
-            <label key={title} className="rating-input__star">
-              <input className="rating-input__control" type="radio" name="rating" value={index + 1} />
-              <svg aria-hidden="true"><use href="#icon-star" /></svg>
-              <span className="visually-hidden">{title}</span>
-            </label>
-          ))}
+          {RATING_TITLES.map((title, index) => {
+            const value = index + 1;
+            return (
+              <label key={title} className="rating-input__star">
+                <input
+                  className="rating-input__control"
+                  type="radio"
+                  name="rating"
+                  value={value}
+                  checked={rating === value}
+                  onChange={() => {
+                    setRating(value);
+                  }}
+                />
+                <svg aria-hidden="true"><use href="#icon-star" /></svg>
+                <span className="visually-hidden">{title}</span>
+              </label>
+            );
+          })}
         </div>
       </fieldset>
       <label className="visually-hidden" htmlFor="review-text">{UiText.ReviewTextLabel}</label>
       <textarea
-        className="field review-form__textarea"
+        className={`field review-form__textarea${hasTextError ? ' field--error' : ''}`}
         id="review-text"
         name="review"
         rows={TEXTAREA_ROWS}
         minLength={ReviewLength.Min}
         maxLength={ReviewLength.Max}
-        aria-describedby="review-hint"
+        aria-describedby={hasTextError ? `${HINT_ID} ${ERROR_ID}` : HINT_ID}
+        aria-invalid={hasTextError || undefined}
         placeholder={UiText.ReviewPlaceholder}
+        value={text}
+        onChange={handleTextChange}
+        onBlur={() => {
+          setIsTextTouched(true);
+        }}
       />
+      {hasTextError && <p className="form-error" id={ERROR_ID}>{UiText.ReviewLengthError}</p>}
       <div className="review-form__footer">
-        <p className="review-form__hint" id="review-hint">
+        <p className="review-form__hint" id={HINT_ID}>
           {UiText.ReviewHint} <b>{UiText.ReviewHintMin}</b>.
         </p>
-        <button className="button review-form__submit" type="submit" disabled>{UiText.Submit}</button>
+        <button className="button review-form__submit" type="submit" disabled={!isValid}>{UiText.Submit}</button>
       </div>
     </form>
   );
