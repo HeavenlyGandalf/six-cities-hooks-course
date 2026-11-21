@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import type {OfferPreview} from '../types/offer';
-import {getNearOffers, groupByCity} from './offers';
+import {filterByTitle, getNearOffers, groupByCity} from './offers';
 
 function createOffer(id: string, cityName: string): OfferPreview {
   return {
@@ -46,5 +46,30 @@ describe('getNearOffers', () => {
 
   it('returns all other offers when there are fewer than the limit', () => {
     expect(getNearOffers(offers, 'a', 10).map((offer) => offer.id)).toEqual(['b', 'c', 'd', 'e']);
+  });
+});
+
+describe('filterByTitle', () => {
+  const offers = [
+    {...createOffer('a', 'Paris'), title: 'Canal View House'},
+    {...createOffer('b', 'Paris'), title: 'Quiet room'},
+    {...createOffer('c', 'Paris'), title: 'Big house with garden'},
+  ];
+
+  it('keeps offers whose title contains the query, ignoring case', () => {
+    expect(filterByTitle(offers, 'HOUSE').map((offer) => offer.id)).toEqual(['a', 'c']);
+  });
+
+  it('ignores spaces around the query', () => {
+    expect(filterByTitle(offers, '  quiet ').map((offer) => offer.id)).toEqual(['b']);
+  });
+
+  it('returns all offers for an empty or blank query', () => {
+    expect(filterByTitle(offers, '')).toEqual(offers);
+    expect(filterByTitle(offers, '   ')).toEqual(offers);
+  });
+
+  it('returns an empty list when nothing matches', () => {
+    expect(filterByTitle(offers, 'castle')).toEqual([]);
   });
 });
