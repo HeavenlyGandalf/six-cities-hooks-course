@@ -1,9 +1,13 @@
-import {act, fireEvent, render, screen} from '@testing-library/react';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {afterEach, describe, expect, it} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import {sendReview} from '../../services/review-api';
 import type {ReviewDraft} from '../../types/review';
 import {getReviewDraftKey} from '../../utils/storage-keys';
 import ReviewForm from './review-form';
+
+// Заглушка отправки ждёт секунду: в тестах ответ приходит сразу или когда его выдаст тест.
+vi.mock('../../services/review-api', () => ({sendReview: vi.fn()}));
 
 const OFFER_ID = '1';
 const OTHER_OFFER_ID = '2';
@@ -38,7 +42,30 @@ function setup() {
   return {user, textarea, submit, fillText};
 }
 
+// Ответ заглушки приходит промисом: форма очищается не сразу после клика.
+function waitForClearedForm(textarea: HTMLElement) {
+  return waitFor(() => {
+    expect(textarea).toHaveValue('');
+  });
+}
+
+// Исполнитель промиса, который не вызывает ни resolve, ни reject: отправка висит.
+function keepSending() {
+  // Ответ сервера не приходит до конца теста.
+}
+
+// Валидная форма: оценка и текст, который можно отправить.
+async function fillValidReview({user, fillText}: ReturnType<typeof setup>) {
+  await user.click(screen.getByLabelText('good'));
+  await fillText(textOf(60));
+}
+
 describe('ReviewForm', () => {
+  beforeEach(() => {
+    vi.mocked(sendReview).mockReset();
+    vi.mocked(sendReview).mockResolvedValue();
+  });
+
   afterEach(() => {
     localStorage.clear();
   });
@@ -166,7 +193,7 @@ describe('ReviewForm', () => {
     await fillText(textOf(60));
     await user.click(submit);
 
-    expect(textarea).toHaveValue('');
+    await waitForClearedForm(textarea);
     expect(screen.getByLabelText('good')).not.toBeChecked();
     expect(submit).toBeDisabled();
   });
@@ -178,6 +205,7 @@ describe('ReviewForm', () => {
     await fillText(textOf(60));
     await user.tab();
     await user.click(submit);
+    await waitForClearedForm(textarea);
     await fillText(textOf(10));
 
     expect(textarea).not.toHaveClass('field--error');
@@ -191,6 +219,50 @@ describe('ReviewForm', () => {
     fireEvent.submit(screen.getByRole('button', {name: 'Submit'}).closest('form') ?? document.body);
 
     expect(textarea).toHaveValue(textOf(10));
+  });
+
+  describe('sending', () => {
+    it('locks the whole form and shows Sending while waiting for the answer', async () => {
+      vi.mocked(sendReview).mockReturnValue(new Promise(keepSending));
+      const form = setup();
+      await fillValidReview(form);
+
+      await form.user.click(form.submit);
+
+      expect(form.submit).toHaveAccessibleName('Sending...');
+      expect(form.submit).toHaveAttribute('aria-busy', 'true');
+      expect(form.submit).toBeDisabled();
+      expect(form.submit.querySelector('.spinner')).toBeInTheDocument();
+      expect(form.textarea).toBeDisabled();
+      expect(screen.getByLabelText('perfect')).toBeDisabled();
+      expect(form.submit.closest('form')).toHaveAttribute('aria-busy', 'true');
+    });
+
+    it('does not send twice when Submit is pressed again', async () => {
+      vi.mocked(sendReview).mockReturnValue(new Promise(keepSending));
+      const form = setup();
+      await fillValidReview(form);
+
+      await form.user.click(form.submit);
+      fireEvent.submit(form.submit.closest('form') ?? document.body);
+
+      expect(sendReview).toHaveBeenCalledOnce();
+    });
+
+    it('keeps the review and shows a message when sending fails', async () => {
+      vi.mocked(sendReview).mockRejectedValue(new Error('Network error'));
+      const form = setup();
+      await fillValidReview(form);
+
+      await form.user.click(form.submit);
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('Could not send the review. Try again');
+      expect(form.submit).toHaveAccessibleDescription('Could not send the review. Try again');
+      expect(form.textarea).toHaveValue(textOf(60));
+      expect(screen.getByLabelText('good')).toBeChecked();
+      expect(form.textarea).toBeEnabled();
+      expect(form.submit).toHaveAccessibleName('Submit');
+    });
   });
 
   describe('draft', () => {
@@ -217,11 +289,12 @@ describe('ReviewForm', () => {
     });
 
     it('is removed after Submit', async () => {
-      const {user, submit, fillText} = setup();
+      const {user, textarea, submit, fillText} = setup();
 
       await user.click(screen.getByLabelText('good'));
       await fillText(textOf(60));
       await user.click(submit);
+      await waitForClearedForm(textarea);
 
       expect(localStorage.getItem(DRAFT_KEY)).toBeNull();
     });

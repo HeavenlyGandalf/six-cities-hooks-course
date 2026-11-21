@@ -83,6 +83,9 @@ export const ReviewLength = {
   Max: 300,
 } as const;
 
+// Задержка заглушки отправки отзыва, мс. На этапе 7 её заменит POST /comments/{offerId}.
+export const REVIEW_SUBMIT_STUB_DELAY_MS = 1000;
+
 // Подписи звёзд формы отзыва: индекс + 1 - значение оценки.
 export const RATING_TITLES = ['terribly', 'badly', 'not bad', 'good', 'perfect'] as const;
 
@@ -143,6 +146,8 @@ export const UiText = {
   ReviewHintMin: `${String(ReviewLength.Min)} characters`,
   ReviewLengthError: `Review must be ${String(ReviewLength.Min)} to ${String(ReviewLength.Max)} characters`,
   Submit: 'Submit',
+  Sending: 'Sending...',
+  ReviewSubmitError: 'Could not send the review. Try again',
   NearMapLabel: 'Map of places nearby',
   NearPlacesTitle: 'Other places in the neighbourhood',
   Loading: 'Loading\u2026',
