@@ -1,5 +1,6 @@
-import {render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import {describe, expect, it} from 'vitest';
+import {renderWithRouter} from '../../mocks/render-with-router';
 import type {OfferPreview} from '../../types/offer';
 import OfferCard, {type OfferCardVariant} from './offer-card';
 
@@ -17,7 +18,7 @@ const baseOffer: OfferPreview = {
 };
 
 function renderCard(override: Partial<OfferPreview> = {}, variant?: OfferCardVariant) {
-  return render(<OfferCard offer={{...baseOffer, ...override}} variant={variant} />);
+  return renderWithRouter(<OfferCard offer={{...baseOffer, ...override}} variant={variant} />);
 }
 
 describe('OfferCard', () => {

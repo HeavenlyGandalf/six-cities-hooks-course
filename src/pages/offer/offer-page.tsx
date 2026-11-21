@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import {useParams} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import OfferGallery from '../../components/offer-gallery/offer-gallery';
@@ -6,17 +7,22 @@ import OfferHost from '../../components/offer-host/offer-host';
 import OfferReviews from '../../components/offer-reviews/offer-reviews';
 import OffersList from '../../components/offers-list/offers-list';
 import {CURRENCY_SIGN, MAX_NEAR_PLACES, UiText} from '../../const';
-import {offer} from '../../mocks/offer';
+import {fullOffers} from '../../mocks/offer';
 import {offers} from '../../mocks/offers';
 import {reviews} from '../../mocks/reviews';
-import {authInfo} from '../../mocks/user';
+import {stubUser} from '../../mocks/user';
+import type {Offer} from '../../types/offer';
 import {capitalize, formatPageTitle, pluralize} from '../../utils/format';
 import {getNearOffers} from '../../utils/offers';
 import {getRatingWidth} from '../../utils/rating';
+import NotFoundPage from '../not-found/not-found-page';
 
-// Этап 2 статичный: предложение, отзывы и соседние берутся из моков.
-// Загрузка по id из адреса появится вместе с маршрутизацией и store.
-function OfferPage(): JSX.Element {
+interface OfferContentProps {
+  offer: Offer;
+}
+
+// Предложение, отзывы и соседние пока из моков; загрузка с сервера - этап 7.
+function OfferContent({offer}: OfferContentProps): JSX.Element {
   const {title, type, price, isFavorite, isPremium, rating, description, bedrooms, goods, host, images, maxAdults} = offer;
   const nearOffers = getNearOffers(offers, offer.id, MAX_NEAR_PLACES);
   const favoriteCount = offers.filter((item) => item.isFavorite).length;
@@ -25,7 +31,7 @@ function OfferPage(): JSX.Element {
   return (
     <div className="page">
       <title>{formatPageTitle(title)}</title>
-      <Header user={authInfo} favoriteCount={favoriteCount} />
+      <Header user={stubUser} favoriteCount={favoriteCount} />
 
       <main className="page__main offer">
         <div className="container">
@@ -81,7 +87,7 @@ function OfferPage(): JSX.Element {
               <OfferHost host={host} description={description} />
             </section>
 
-            <OfferReviews reviews={reviews} user={authInfo} />
+            <OfferReviews reviews={reviews} user={stubUser} />
           </div>
         </div>
 
@@ -101,6 +107,19 @@ function OfferPage(): JSX.Element {
       <Footer />
     </div>
   );
+}
+
+// id берётся из адреса /offer/:id. Неизвестный id - та же 404, что и для неизвестного адреса.
+function OfferPage(): JSX.Element {
+  const {id} = useParams();
+  const offer = fullOffers.find((item) => item.id === id);
+
+  if (!offer) {
+    return <NotFoundPage />;
+  }
+
+  // key={offer.id}: при переходе на другое предложение состояние содержимого создаётся заново.
+  return <OfferContent key={offer.id} offer={offer} />;
 }
 
 export default OfferPage;

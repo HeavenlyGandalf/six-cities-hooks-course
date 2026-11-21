@@ -1,5 +1,6 @@
-import {render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import {describe, expect, it} from 'vitest';
+import {renderWithRouter} from '../../mocks/render-with-router';
 import type {OfferPreview} from '../../types/offer';
 import OffersList from './offers-list';
 
@@ -22,20 +23,20 @@ describe('OffersList', () => {
   it('renders one card per offer', () => {
     const offers = [createOffer('a', 'First offer'), createOffer('b', 'Second offer'), createOffer('c', 'Third offer')];
 
-    render(<OffersList offers={offers} />);
+    renderWithRouter(<OffersList offers={offers} />);
 
     expect(screen.getAllByRole('article')).toHaveLength(3);
     expect(screen.getByRole('link', {name: 'Second offer'})).toBeInTheDocument();
   });
 
   it('wraps cards in places-grid by default', () => {
-    const {container} = render(<OffersList offers={[createOffer('a', 'First offer')]} />);
+    const {container} = renderWithRouter(<OffersList offers={[createOffer('a', 'First offer')]} />);
 
     expect(container.firstElementChild).toHaveClass('places-grid');
   });
 
   it('uses the given list class and card variant', () => {
-    const {container} = render(
+    const {container} = renderWithRouter(
       <OffersList offers={[createOffer('a', 'First offer')]} className="favorites__places" variant="row" />,
     );
 

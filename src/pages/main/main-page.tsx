@@ -1,10 +1,11 @@
 import type {JSX} from 'react';
+import {Link} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import OffersList from '../../components/offers-list/offers-list';
 import {AppRoute, CITIES, DEFAULT_CITY, DEFAULT_SORT, SORT_OPTIONS, UiText} from '../../const';
 import {offers} from '../../mocks/offers';
-import {authInfo} from '../../mocks/user';
+import {stubUser} from '../../mocks/user';
 import {formatPageTitle} from '../../utils/format';
 
 // Этап 2 статичный: город и сортировка зафиксированы, обработчиков нет.
@@ -17,7 +18,7 @@ function MainPage(): JSX.Element {
   return (
     <div className="page">
       <title>{formatPageTitle(activeCity)}</title>
-      <Header user={authInfo} favoriteCount={favoriteCount} />
+      <Header user={stubUser} favoriteCount={favoriteCount} />
 
       <main className="page__main">
         <h1 className="visually-hidden">{UiText.CitiesHeading}</h1>
@@ -28,13 +29,13 @@ function MainPage(): JSX.Element {
                 const isActive = city === activeCity;
                 return (
                   <li key={city}>
-                    <a
+                    <Link
                       className={`cities__link${isActive ? ' cities__link--active' : ''}`}
-                      href={AppRoute.Main}
+                      to={AppRoute.Main}
                       aria-current={isActive ? 'page' : undefined}
                     >
                       {city}
-                    </a>
+                    </Link>
                   </li>
                 );
               })}

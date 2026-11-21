@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import {Link} from 'react-router';
 import {AppRoute, UiText} from '../../const';
 import type {AuthInfo} from '../../types/user';
 import Logo from '../logo/logo';
@@ -21,24 +22,24 @@ function Header({user, favoriteCount, isSignInCurrent = false}: HeaderProps): JS
         <nav className="user-nav" aria-label={UiText.UserNavLabel}>
           {user ? (
             <>
-              <a className="user-nav__link" href={AppRoute.Favorites}>
+              <Link className="user-nav__link" to={AppRoute.Favorites}>
                 <img className="user-nav__avatar" src={user.avatarUrl} width={AVATAR_SIZE} height={AVATAR_SIZE} alt="" />
                 <span className="user-nav__email">{user.email}</span>
                 <span className="user-nav__count" aria-label={`${UiText.FavoriteCountLabel} ${String(favoriteCount)}`}>
                   {favoriteCount}
                 </span>
-              </a>
-              <a className="user-nav__link user-nav__link--signout" href={AppRoute.Main}>
+              </Link>
+              <Link className="user-nav__link user-nav__link--signout" to={AppRoute.Main}>
                 <span className="user-nav__label">{UiText.SignOut}</span>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <path d="M8 4H4v12h4M12 6l4 4-4 4M16 10H8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              </a>
+              </Link>
             </>
           ) : (
-            <a className="user-nav__link" href={AppRoute.Login} aria-current={isSignInCurrent ? 'page' : undefined}>
+            <Link className="user-nav__link" to={AppRoute.Login} aria-current={isSignInCurrent ? 'page' : undefined}>
               {UiText.SignIn}
-            </a>
+            </Link>
           )}
         </nav>
       </div>

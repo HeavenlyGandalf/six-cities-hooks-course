@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import {Link} from 'react-router';
 import {AppRoute, UiText} from '../../const';
 import type {Review} from '../../types/review';
 import type {AuthInfo} from '../../types/user';
@@ -22,7 +23,7 @@ function OfferReviews({reviews, user}: OfferReviewsProps): JSX.Element {
         <ReviewForm />
       ) : (
         <p className="reviews__login">
-          <a href={AppRoute.Login}>{UiText.SignIn}</a> {UiText.ReviewLoginSuffix}
+          <Link to={AppRoute.Login}>{UiText.SignIn}</Link> {UiText.ReviewLoginSuffix}
         </p>
       )}
     </section>

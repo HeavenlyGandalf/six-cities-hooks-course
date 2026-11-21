@@ -1,8 +1,14 @@
 import type {JSX} from 'react';
-import MainPage from '../../pages/main/main-page';
+import type {DataRouter} from 'react-router';
+import {RouterProvider} from 'react-router/dom';
 
-function App(): JSX.Element {
-  return <MainPage />;
+interface AppProps {
+  // Router создаётся снаружи: в main.tsx - браузерный, в тестах - createMemoryRouter.
+  router: DataRouter;
+}
+
+function App({router}: AppProps): JSX.Element {
+  return <RouterProvider router={router} />;
 }
 
 export default App;
