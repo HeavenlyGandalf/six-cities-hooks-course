@@ -1,4 +1,4 @@
-import type {JSX} from 'react';
+import type {FocusEvent, JSX} from 'react';
 import {generatePath, Link} from 'react-router';
 import {AppRoute, CURRENCY_SIGN, Rating, UiText} from '../../const';
 import type {OfferPreview} from '../../types/offer';
@@ -10,6 +10,9 @@ export type OfferCardVariant = 'grid' | 'row';
 interface OfferCardProps {
   offer: OfferPreview;
   variant?: OfferCardVariant;
+  isActive?: boolean;
+  // Сообщает id карточки под курсором или с фокусом внутри и null, когда они ушли.
+  onCardHover?: (offerId: string | null) => void;
 }
 
 // Размеры превью из вёрстки (course/markup/main.html).
@@ -18,9 +21,19 @@ const PreviewSize = {
   Height: 300,
 } as const;
 
-function OfferCard({offer, variant = 'grid'}: OfferCardProps): JSX.Element {
+function OfferCard({offer, variant = 'grid', isActive = false, onCardHover}: OfferCardProps): JSX.Element {
   const {id, title, type, price, previewImage, isFavorite, isPremium, rating} = offer;
   const isRow = variant === 'row';
+  const cardClassName = `place-card${isRow ? ' place-card--row' : ''}${isActive ? ' place-card--active' : ''}`;
+
+  // Фокус, перешедший на другой элемент той же карточки, не сбрасывает активность.
+  const handleBlur = (event: FocusEvent<HTMLElement>) => {
+    const {relatedTarget, currentTarget} = event;
+    if (relatedTarget instanceof Node && currentTarget.contains(relatedTarget)) {
+      return;
+    }
+    onCardHover?.(null);
+  };
   const bookmarkClassName = `bookmark place-card__bookmark${isFavorite ? ' bookmark--active' : ''}`;
 
   const bookmark = (
@@ -33,7 +46,13 @@ function OfferCard({offer, variant = 'grid'}: OfferCardProps): JSX.Element {
   );
 
   return (
-    <article className={`place-card${isRow ? ' place-card--row' : ''}`}>
+    <article
+      className={cardClassName}
+      onMouseEnter={() => onCardHover?.(id)}
+      onMouseLeave={() => onCardHover?.(null)}
+      onFocus={() => onCardHover?.(id)}
+      onBlur={handleBlur}
+    >
       <div className="place-card__image-wrapper">
         <img
           className="place-card__image"
