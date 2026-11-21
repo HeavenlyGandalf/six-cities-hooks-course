@@ -140,6 +140,7 @@ export const UiText = {
   ReviewPlaceholder: 'Tell how was your stay, what you like and what can be improved',
   ReviewHint: 'To submit review please make sure to set rating and describe your stay with at least',
   ReviewHintMin: `${String(ReviewLength.Min)} characters`,
+  ReviewLengthError: `Review must be ${String(ReviewLength.Min)} to ${String(ReviewLength.Max)} characters`,
   Submit: 'Submit',
   NearMapLabel: 'Map of places nearby',
   NearPlacesTitle: 'Other places in the neighbourhood',

@@ -1,13 +1,31 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {describe, expect, it} from 'vitest';
 import ReviewForm from './review-form';
+
+const textOf = (length: number) => 'a'.repeat(length);
+
+function setup() {
+  const user = userEvent.setup();
+  render(<ReviewForm />);
+  const textarea = screen.getByLabelText('Review text');
+  const submit = screen.getByRole('button', {name: 'Submit'});
+  // paste быстрее type для длинных строк и так же вызывает onChange.
+  const fillText = async (value: string) => {
+    await user.clear(textarea);
+    if (value) {
+      await user.click(textarea);
+      await user.paste(value);
+    }
+  };
+  return {user, textarea, submit, fillText};
+}
 
 describe('ReviewForm', () => {
   it('has five rating stars from terribly to perfect', () => {
     render(<ReviewForm />);
 
-    const stars = screen.getAllByRole('radio');
-    expect(stars).toHaveLength(5);
+    expect(screen.getAllByRole('radio')).toHaveLength(5);
     expect(screen.getByLabelText('terribly')).toHaveAttribute('value', '1');
     expect(screen.getByLabelText('perfect')).toHaveAttribute('value', '5');
   });
@@ -21,9 +39,136 @@ describe('ReviewForm', () => {
     expect(textarea).toHaveAccessibleDescription(/at least 50 characters\./);
   });
 
-  it('keeps Submit disabled', () => {
-    render(<ReviewForm />);
+  describe('Submit availability', () => {
+    it('is disabled initially', () => {
+      const {submit} = setup();
 
-    expect(screen.getByRole('button', {name: 'Submit'})).toBeDisabled();
+      expect(submit).toBeDisabled();
+    });
+
+    it('is disabled with a valid text but no rating', async () => {
+      const {submit, fillText} = setup();
+
+      await fillText(textOf(60));
+
+      expect(submit).toBeDisabled();
+    });
+
+    it('is disabled with a rating but a 49-character text', async () => {
+      const {user, submit, fillText} = setup();
+
+      await user.click(screen.getByLabelText('good'));
+      await fillText(textOf(49));
+
+      expect(submit).toBeDisabled();
+    });
+
+    it.each([50, 300])('is enabled with a rating and a %s-character text', async (length) => {
+      const {user, submit, fillText} = setup();
+
+      await user.click(screen.getByLabelText('good'));
+      await fillText(textOf(length));
+
+      expect(submit).toBeEnabled();
+    });
+
+    it('does not count spaces at the edges', async () => {
+      const {user, submit, fillText} = setup();
+
+      await user.click(screen.getByLabelText('good'));
+      await fillText(`   ${textOf(49)}   `);
+      expect(submit).toBeDisabled();
+
+      await fillText(`   ${textOf(50)}   `);
+      expect(submit).toBeEnabled();
+    });
+
+    it('cannot take more than 300 characters', async () => {
+      const {textarea, fillText} = setup();
+
+      await fillText(textOf(310));
+
+      expect(textarea).toHaveValue(textOf(300));
+    });
+  });
+
+  describe('text error', () => {
+    it('is not shown while typing before the field loses focus', async () => {
+      const {textarea, fillText} = setup();
+
+      await fillText(textOf(10));
+
+      expect(textarea).not.toHaveClass('field--error');
+      expect(screen.queryByText('Review must be 50 to 300 characters')).not.toBeInTheDocument();
+    });
+
+    it('is shown after blur for a short text and removed once the text is valid', async () => {
+      const {user, textarea, fillText} = setup();
+
+      await fillText(textOf(10));
+      await user.tab();
+
+      expect(textarea).toHaveClass('field--error');
+      expect(textarea).toHaveAttribute('aria-invalid', 'true');
+      expect(textarea).toHaveAccessibleDescription(/Review must be 50 to 300 characters/);
+
+      await fillText(textOf(50));
+
+      expect(textarea).not.toHaveClass('field--error');
+      expect(textarea).not.toHaveAttribute('aria-invalid');
+      expect(screen.queryByText('Review must be 50 to 300 characters')).not.toBeInTheDocument();
+    });
+
+    it('is shown after blur for a text of spaces only', async () => {
+      const {user, textarea, fillText} = setup();
+
+      await fillText('   ');
+      await user.tab();
+
+      expect(textarea).toHaveClass('field--error');
+    });
+
+    it('is not shown after blur for an empty field', async () => {
+      const {user, textarea} = setup();
+
+      await user.click(textarea);
+      await user.tab();
+
+      expect(textarea).not.toHaveClass('field--error');
+    });
+  });
+
+  it('clears the form after Submit', async () => {
+    const {user, textarea, submit, fillText} = setup();
+
+    await user.click(screen.getByLabelText('good'));
+    await fillText(textOf(60));
+    await user.click(submit);
+
+    expect(textarea).toHaveValue('');
+    expect(screen.getByLabelText('good')).not.toBeChecked();
+    expect(submit).toBeDisabled();
+  });
+
+  it('does not show the error while typing again after Submit', async () => {
+    const {user, textarea, submit, fillText} = setup();
+
+    await user.click(screen.getByLabelText('good'));
+    await fillText(textOf(60));
+    await user.tab();
+    await user.click(submit);
+    await fillText(textOf(10));
+
+    expect(textarea).not.toHaveClass('field--error');
+  });
+
+  it('does not clear an invalid form on submit', async () => {
+    const {textarea, fillText} = setup();
+
+    await fillText(textOf(10));
+    // Кнопка выключена, поэтому отправка вызывается на форме напрямую.
+    fireEvent.submit(screen.getByRole('button', {name: 'Submit'}).closest('form') ?? document.body);
+
+    expect(textarea).toHaveValue(textOf(10));
   });
 });
