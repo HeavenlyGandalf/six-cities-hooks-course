@@ -1,5 +1,6 @@
 import type {JSX} from 'react';
 import {UiText} from '../../const';
+import {formatPageTitle} from '../../utils/format';
 
 interface ErrorScreenProps {
   // По умолчанию «Try again» перезагружает страницу; тест подставляет свою функцию.
@@ -15,6 +16,7 @@ function reloadPage(): void {
 function ErrorScreen({onRetry = reloadPage}: ErrorScreenProps): JSX.Element {
   return (
     <div className="page">
+      <title>{formatPageTitle(UiText.ServerErrorTitle)}</title>
       <main className="page__main">
         <div className="container">
           <div className="empty" role="alert">
