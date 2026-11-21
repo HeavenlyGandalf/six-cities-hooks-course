@@ -64,6 +64,17 @@ describe('App routes', () => {
     expect(screen.getByRole('heading', {level: 1, name: offer.title})).toBeInTheDocument();
   });
 
+  it('scrolls to the top when an offer opens from a card', async () => {
+    const user = userEvent.setup();
+    const scrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => undefined);
+    renderRoute(AppRoute.Main);
+    scrollTo.mockClear();
+
+    await user.click(screen.getByRole('link', {name: offer.title}));
+
+    expect(scrollTo).toHaveBeenCalledWith(0, 0);
+  });
+
   it('goes to the main page by the logo', async () => {
     const user = userEvent.setup();
     const router = renderRoute('/abc');
