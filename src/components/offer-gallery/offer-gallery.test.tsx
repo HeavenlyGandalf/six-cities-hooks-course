@@ -22,4 +22,16 @@ describe('OfferGallery', () => {
     expect(screen.getByRole('list', {name: 'Photos'}).children).toHaveLength(2);
     expect(screen.getByAltText('Studio, photo 2')).toBeInTheDocument();
   });
+
+  it('loads the first row of photos at once and the rest lazily, with sizes from the markup', () => {
+    render(<OfferGallery images={createImages(6)} title="Studio" />);
+
+    const photos = screen.getAllByRole('img');
+    photos.slice(0, 3).forEach((photo) => expect(photo).not.toHaveAttribute('loading'));
+    photos.slice(3).forEach((photo) => expect(photo).toHaveAttribute('loading', 'lazy'));
+    photos.forEach((photo) => {
+      expect(photo).toHaveAttribute('width', '800');
+      expect(photo).toHaveAttribute('height', '600');
+    });
+  });
 });

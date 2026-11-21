@@ -12,7 +12,11 @@ const ImageSize = {
   Height: 600,
 } as const;
 
-// Галерея на первом экране, поэтому фото без loading="lazy". Больше MAX_IMAGES не выводится.
+// Фото первого экрана грузятся сразу: это первый ряд сетки на десктопе (3 колонки, pages/offer.css).
+// На телефоне и планшете на первом экране их меньше. Остальные - с loading="lazy" (AD-19).
+const EAGER_IMAGES_COUNT = 3;
+
+// Больше MAX_IMAGES фото не выводится.
 function OfferGallery({images, title}: OfferGalleryProps): JSX.Element {
   return (
     <ul className="gallery" aria-label={UiText.PhotosLabel}>
@@ -24,6 +28,7 @@ function OfferGallery({images, title}: OfferGalleryProps): JSX.Element {
             width={ImageSize.Width}
             height={ImageSize.Height}
             alt={`${title}, ${UiText.Photo} ${String(index + 1)}`}
+            loading={index < EAGER_IMAGES_COUNT ? undefined : 'lazy'}
           />
         </li>
       ))}
