@@ -3,18 +3,24 @@ import {Link} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import OffersList from '../../components/offers-list/offers-list';
+import SearchField from '../../components/search-field/search-field';
 import {AppRoute, CITIES, DEFAULT_CITY, DEFAULT_SORT, SORT_OPTIONS, UiText} from '../../const';
 import {offers} from '../../mocks/offers';
 import {stubUser} from '../../mocks/user';
 import {formatPageTitle} from '../../utils/format';
+import {filterByTitle} from '../../utils/offers';
 
 // Город и сортировка пока зафиксированы: ссылки городов ведут на главную,
 // выбор города и сортировка появятся вместе со store.
 // Активная карточка - локальное состояние страницы, позже её получит карта (H5).
+// Строка поиска приходит из SearchField уже с задержкой; на этапе 6 она переедет в адрес (H4).
 function MainPage(): JSX.Element {
   const [activeOfferId, setActiveOfferId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const activeCity = DEFAULT_CITY;
   const cityOffers = offers.filter((offer) => offer.city.name === activeCity);
+  // При непустом поиске заголовок считает найденные предложения (FR-2).
+  const foundOffers = filterByTitle(cityOffers, searchQuery);
   const favoriteCount = offers.filter((offer) => offer.isFavorite).length;
 
   return (
@@ -64,9 +70,10 @@ function MainPage(): JSX.Element {
           <section className="places places-layout__list">
             <div className="places__head">
               <h2 className="places__title">
-                {cityOffers.length} {UiText.PlacesToStayIn} {activeCity}
+                {foundOffers.length} {UiText.PlacesToStayIn} {activeCity}
               </h2>
               <div className="places__tools">
+                <SearchField onSearch={setSearchQuery} />
                 <div className="sort">
                   <span className="sort__caption" id="sort-caption">{UiText.SortBy}</span>
                   <button
@@ -98,7 +105,7 @@ function MainPage(): JSX.Element {
               </div>
             </div>
 
-            <OffersList offers={cityOffers} activeOfferId={activeOfferId} onCardHover={setActiveOfferId} />
+            <OffersList offers={foundOffers} activeOfferId={activeOfferId} onCardHover={setActiveOfferId} />
           </section>
         </div>
       </main>
