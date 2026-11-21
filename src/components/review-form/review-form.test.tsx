@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {describe, expect, it} from 'vitest';
 import ReviewForm from './review-form';
@@ -119,6 +119,15 @@ describe('ReviewForm', () => {
       expect(screen.queryByText('Review must be 50 to 300 characters')).not.toBeInTheDocument();
     });
 
+    it('is shown after blur for a text of spaces only', async () => {
+      const {user, textarea, fillText} = setup();
+
+      await fillText('   ');
+      await user.tab();
+
+      expect(textarea).toHaveClass('field--error');
+    });
+
     it('is not shown after blur for an empty field', async () => {
       const {user, textarea} = setup();
 
@@ -139,5 +148,27 @@ describe('ReviewForm', () => {
     expect(textarea).toHaveValue('');
     expect(screen.getByLabelText('good')).not.toBeChecked();
     expect(submit).toBeDisabled();
+  });
+
+  it('does not show the error while typing again after Submit', async () => {
+    const {user, textarea, submit, fillText} = setup();
+
+    await user.click(screen.getByLabelText('good'));
+    await fillText(textOf(60));
+    await user.tab();
+    await user.click(submit);
+    await fillText(textOf(10));
+
+    expect(textarea).not.toHaveClass('field--error');
+  });
+
+  it('does not clear an invalid form on submit', async () => {
+    const {textarea, fillText} = setup();
+
+    await fillText(textOf(10));
+    // Кнопка выключена, поэтому отправка вызывается на форме напрямую.
+    fireEvent.submit(screen.getByRole('button', {name: 'Submit'}).closest('form') ?? document.body);
+
+    expect(textarea).toHaveValue(textOf(10));
   });
 });

@@ -19,8 +19,16 @@ function ReviewForm(): JSX.Element {
   const isValid = isReviewValid(rating, text);
   const hasTextError = isTextTouched && text !== '' && !isReviewTextValid(text);
 
+  const handleRatingChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setRating(Number(event.target.value));
+  };
+
   const handleTextChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setText(event.target.value);
+  };
+
+  const handleTextBlur = () => {
+    setIsTextTouched(true);
   };
 
   const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
@@ -49,9 +57,7 @@ function ReviewForm(): JSX.Element {
                   name="rating"
                   value={value}
                   checked={rating === value}
-                  onChange={() => {
-                    setRating(value);
-                  }}
+                  onChange={handleRatingChange}
                 />
                 <svg aria-hidden="true"><use href="#icon-star" /></svg>
                 <span className="visually-hidden">{title}</span>
@@ -73,11 +79,10 @@ function ReviewForm(): JSX.Element {
         placeholder={UiText.ReviewPlaceholder}
         value={text}
         onChange={handleTextChange}
-        onBlur={() => {
-          setIsTextTouched(true);
-        }}
+        onBlur={handleTextBlur}
       />
-      {hasTextError && <p className="form-error" id={ERROR_ID}>{UiText.ReviewLengthError}</p>}
+      {/* role="alert": ошибка появляется, когда фокус уже ушёл из поля, иначе скринридер её не прочтёт. */}
+      {hasTextError && <p className="form-error" id={ERROR_ID} role="alert">{UiText.ReviewLengthError}</p>}
       <div className="review-form__footer">
         <p className="review-form__hint" id={HINT_ID}>
           {UiText.ReviewHint} <b>{UiText.ReviewHintMin}</b>.

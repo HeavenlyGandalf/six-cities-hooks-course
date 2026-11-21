@@ -1,3 +1,4 @@
+import {Rating, RATING_TITLES} from '../const';
 import {describe, expect, it} from 'vitest';
 import {getReviewLength, isReviewTextValid, isReviewValid} from './review';
 
@@ -40,5 +41,11 @@ describe('isReviewValid', () => {
 
   it('rejects a valid rating with a short text', () => {
     expect(isReviewValid(4, textOf(49))).toBe(false);
+  });
+});
+
+describe('rating stars', () => {
+  it('match the rating limit: one title per star', () => {
+    expect(RATING_TITLES).toHaveLength(Rating.Max);
   });
 });
