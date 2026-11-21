@@ -5,7 +5,7 @@ import Header from '../../components/header/header';
 import OffersList from '../../components/offers-list/offers-list';
 import {AppRoute, CITIES, DEFAULT_CITY, DEFAULT_SORT, SORT_OPTIONS, UiText} from '../../const';
 import {offers} from '../../mocks/offers';
-import {authInfo} from '../../mocks/user';
+import {stubUser} from '../../mocks/user';
 import {formatPageTitle} from '../../utils/format';
 
 // Этап 2 статичный: город и сортировка зафиксированы, обработчиков нет.
@@ -18,7 +18,7 @@ function MainPage(): JSX.Element {
   return (
     <div className="page">
       <title>{formatPageTitle(activeCity)}</title>
-      <Header user={authInfo} favoriteCount={favoriteCount} />
+      <Header user={stubUser} favoriteCount={favoriteCount} />
 
       <main className="page__main">
         <h1 className="visually-hidden">{UiText.CitiesHeading}</h1>

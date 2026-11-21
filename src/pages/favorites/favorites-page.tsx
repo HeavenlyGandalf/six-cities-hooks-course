@@ -5,7 +5,7 @@ import Header from '../../components/header/header';
 import OffersList from '../../components/offers-list/offers-list';
 import {AppRoute, PageTitle, UiText} from '../../const';
 import {offers} from '../../mocks/offers';
-import {authInfo} from '../../mocks/user';
+import {stubUser} from '../../mocks/user';
 import {formatPageTitle} from '../../utils/format';
 import {groupByCity} from '../../utils/offers';
 
@@ -17,7 +17,7 @@ function FavoritesPage(): JSX.Element {
   return (
     <div className="page">
       <title>{formatPageTitle(`${PageTitle.Favorites} (${String(favoriteOffers.length)})`)}</title>
-      <Header user={authInfo} favoriteCount={favoriteOffers.length} />
+      <Header user={stubUser} favoriteCount={favoriteOffers.length} />
 
       <main className="page__main">
         <div className="container favorites">

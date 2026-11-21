@@ -18,9 +18,10 @@ describe('NotFoundPage', () => {
     expect(container.querySelector('svg.not-found__image')).toHaveAttribute('aria-hidden', 'true');
   });
 
-  it('shows the signed-in user in the header', () => {
+  it('shows the guest header while the auth stub is no-auth', () => {
     renderWithRouter(<NotFoundPage />);
 
-    expect(screen.getByRole('link', {name: 'Sign out'})).toBeInTheDocument();
+    expect(screen.getByRole('link', {name: 'Sign in'})).toHaveAttribute('href', '/login');
+    expect(screen.queryByRole('link', {name: 'Sign out'})).not.toBeInTheDocument();
   });
 });

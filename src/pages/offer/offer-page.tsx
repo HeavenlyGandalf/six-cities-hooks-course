@@ -9,7 +9,7 @@ import {CURRENCY_SIGN, MAX_NEAR_PLACES, UiText} from '../../const';
 import {offer} from '../../mocks/offer';
 import {offers} from '../../mocks/offers';
 import {reviews} from '../../mocks/reviews';
-import {authInfo} from '../../mocks/user';
+import {stubUser} from '../../mocks/user';
 import {capitalize, formatPageTitle, pluralize} from '../../utils/format';
 import {getNearOffers} from '../../utils/offers';
 import {getRatingWidth} from '../../utils/rating';
@@ -25,7 +25,7 @@ function OfferPage(): JSX.Element {
   return (
     <div className="page">
       <title>{formatPageTitle(title)}</title>
-      <Header user={authInfo} favoriteCount={favoriteCount} />
+      <Header user={stubUser} favoriteCount={favoriteCount} />
 
       <main className="page__main offer">
         <div className="container">
@@ -81,7 +81,7 @@ function OfferPage(): JSX.Element {
               <OfferHost host={host} description={description} />
             </section>
 
-            <OfferReviews reviews={reviews} user={authInfo} />
+            <OfferReviews reviews={reviews} user={stubUser} />
           </div>
         </div>
 

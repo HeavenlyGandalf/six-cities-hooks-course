@@ -4,7 +4,7 @@ import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import {AppRoute, PageTitle, UiText} from '../../const';
 import {offers} from '../../mocks/offers';
-import {authInfo} from '../../mocks/user';
+import {stubUser} from '../../mocks/user';
 import {formatPageTitle} from '../../utils/format';
 
 function NotFoundPage(): JSX.Element {
@@ -13,7 +13,7 @@ function NotFoundPage(): JSX.Element {
   return (
     <div className="page">
       <title>{formatPageTitle(PageTitle.NotFound)}</title>
-      <Header user={authInfo} favoriteCount={favoriteCount} />
+      <Header user={stubUser} favoriteCount={favoriteCount} />
 
       <main className="page__main">
         <section className="container not-found" aria-labelledby="not-found-title">

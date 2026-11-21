@@ -49,12 +49,13 @@ describe('OfferPage', () => {
     expect(screen.getByText('Pro')).toHaveClass('host__status');
   });
 
-  it('shows reviews with the total count and the form for a signed in user', () => {
+  it('shows reviews with the total count and a sign in invite for a guest', () => {
     renderWithRouter(<OfferPage />);
 
     const section = screen.getByRole('region', {name: `Reviews · ${String(reviews.length)}`});
     expect(within(section).getAllByRole('listitem')).toHaveLength(reviews.length);
-    expect(within(section).getByRole('button', {name: 'Submit'})).toBeDisabled();
+    expect(within(section).getByRole('link', {name: 'Sign in'})).toHaveAttribute('href', '/login');
+    expect(within(section).queryByRole('button', {name: 'Submit'})).not.toBeInTheDocument();
   });
 
   it('shows 3 nearby offers without the current one and a map placeholder', () => {

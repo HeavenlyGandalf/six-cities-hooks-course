@@ -1,8 +1,21 @@
 import {screen, within} from '@testing-library/react';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {renderWithRouter} from '../../mocks/render-with-router';
 import {offers} from '../../mocks/offers';
 import FavoritesPage from './favorites-page';
+
+// Избранное открывается только вошедшему (private-route), поэтому страница проверяется с пользователем.
+const {signedInUser} = vi.hoisted(() => ({
+  signedInUser: {
+    name: 'Oliver',
+    avatarUrl: '/img/avatars/user-3.svg',
+    isPro: false,
+    email: 'oliver@example.com',
+    token: 'token',
+  },
+}));
+
+vi.mock('../../mocks/user', () => ({stubUser: signedInUser}));
 
 const favoriteOffers = offers.filter((offer) => offer.isFavorite);
 
