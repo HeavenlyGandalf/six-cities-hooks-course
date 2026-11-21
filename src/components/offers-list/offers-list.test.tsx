@@ -1,5 +1,6 @@
 import {screen} from '@testing-library/react';
-import {describe, expect, it} from 'vitest';
+import userEvent from '@testing-library/user-event';
+import {describe, expect, it, vi} from 'vitest';
 import {renderWithRouter} from '../../mocks/render-with-router';
 import type {OfferPreview} from '../../types/offer';
 import OffersList from './offers-list';
@@ -43,5 +44,33 @@ describe('OffersList', () => {
     expect(container.firstElementChild).toHaveClass('favorites__places');
     expect(container.firstElementChild).not.toHaveClass('places-grid');
     expect(screen.getByRole('article')).toHaveClass('place-card--row');
+  });
+
+  it('marks only the card with activeOfferId as active', () => {
+    const offers = [createOffer('a', 'First offer'), createOffer('b', 'Second offer'), createOffer('c', 'Third offer')];
+
+    renderWithRouter(<OffersList offers={offers} activeOfferId="b" />);
+
+    const cards = screen.getAllByRole('article');
+    expect(cards[1]).toHaveClass('place-card--active');
+    expect(document.querySelectorAll('.place-card--active')).toHaveLength(1);
+  });
+
+  it('marks no card when activeOfferId is null', () => {
+    renderWithRouter(<OffersList offers={[createOffer('a', 'First offer')]} activeOfferId={null} />);
+
+    expect(screen.getByRole('article')).not.toHaveClass('place-card--active');
+  });
+
+  it('passes onCardHover to the cards', async () => {
+    const user = userEvent.setup();
+    const onCardHover = vi.fn();
+    renderWithRouter(
+      <OffersList offers={[createOffer('a', 'First offer'), createOffer('b', 'Second offer')]} onCardHover={onCardHover} />,
+    );
+
+    await user.hover(screen.getAllByRole('article')[1]);
+
+    expect(onCardHover).toHaveBeenLastCalledWith('b');
   });
 });
