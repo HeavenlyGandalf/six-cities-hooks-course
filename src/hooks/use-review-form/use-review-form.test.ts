@@ -153,4 +153,74 @@ describe('useReviewForm: submit', () => {
     expect(sendReview).toHaveBeenCalledTimes(2);
     expect(result.current.text).toBe('');
   });
+
+  it('sends once when Submit is pressed twice in the same tick', () => {
+    deferSend();
+    const {result} = renderFilledForm();
+
+    act(() => {
+      result.current.submit();
+      result.current.submit();
+    });
+
+    expect(sendReview).toHaveBeenCalledOnce();
+  });
+
+  it('sends once when Submit is pressed again while sending', () => {
+    deferSend();
+    const {result} = renderFilledForm();
+    act(() => {
+      result.current.submit();
+    });
+
+    act(() => {
+      result.current.submit();
+    });
+
+    expect(sendReview).toHaveBeenCalledOnce();
+  });
+
+  it('does nothing for an invalid form', () => {
+    const {result} = renderReviewForm();
+    act(() => {
+      result.current.changeText(VALID_TEXT);
+    });
+
+    act(() => {
+      result.current.submit();
+    });
+
+    expect(sendReview).not.toHaveBeenCalled();
+    expect(result.current.isSubmitting).toBe(false);
+  });
+
+  it('ignores rating and text changes while sending', () => {
+    deferSend();
+    const {result} = renderFilledForm();
+    act(() => {
+      result.current.submit();
+    });
+
+    act(() => {
+      result.current.changeRating(1);
+      result.current.changeText(SHORT_TEXT);
+    });
+
+    expect(result.current).toMatchObject({rating: RATING, text: VALID_TEXT, isSubmitting: true});
+  });
+
+  it('hides the send error once the form is edited', async () => {
+    const send = deferSend();
+    const {result} = renderFilledForm();
+    act(() => {
+      result.current.submit();
+    });
+    await send.fail();
+
+    act(() => {
+      result.current.changeText(`${VALID_TEXT}!`);
+    });
+
+    expect(result.current.isError).toBe(false);
+  });
 });
