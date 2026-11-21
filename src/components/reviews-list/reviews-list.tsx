@@ -6,7 +6,7 @@ interface ReviewsListProps {
   reviews: Review[];
 }
 
-// Правила «не больше 10» и «новые сверху» появятся в эпиках 5 и 7.
+// Порядок и лимит задаёт OfferReviews; список выводит отзывы как получил.
 function ReviewsList({reviews}: ReviewsListProps): JSX.Element {
   return (
     <ul className="reviews__list">

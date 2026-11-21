@@ -1,5 +1,6 @@
 import {screen} from '@testing-library/react';
 import {describe, expect, it} from 'vitest';
+import {MAX_REVIEWS} from '../../const';
 import {renderWithRouter} from '../../mocks/render-with-router';
 import type {Review} from '../../types/review';
 import type {AuthInfo} from '../../types/user';
@@ -30,7 +31,43 @@ const user: AuthInfo = {
   token: 'token',
 };
 
+// 12 отзывов за каждый месяц 2019 года (0 - январь), вперемешку по датам.
+const shuffledMonths = [5, 0, 11, 3, 8, 1, 10, 6, 2, 9, 4, 7];
+const manyReviews: Review[] = shuffledMonths.map((month) => ({
+  id: `review-${String(month)}`,
+  date: new Date(Date.UTC(2019, month, 15)).toISOString(),
+  user: {name: `Author ${String(month)}`, avatarUrl: '/img/avatars/avatar-max.svg', isPro: false},
+  comment: `Review for month ${String(month)}.`,
+  rating: 4,
+}));
+
 describe('OfferReviews', () => {
+  it('shows the total in the heading but no more than 10 reviews', () => {
+    renderWithRouter(<OfferReviews offerId="1" reviews={manyReviews} user={null} />);
+
+    expect(screen.getByRole('heading', {level: 2})).toHaveTextContent(`Reviews · ${String(shuffledMonths.length)}`);
+    expect(screen.getAllByRole('listitem')).toHaveLength(MAX_REVIEWS);
+  });
+
+  it('shows newer reviews first with the date as April 2019', () => {
+    const {container} = renderWithRouter(<OfferReviews offerId="1" reviews={manyReviews} user={null} />);
+
+    const dates = Array.from(container.querySelectorAll('.review__date'), (date) => date.textContent);
+    expect(dates).toEqual([
+      'December 2019',
+      'November 2019',
+      'October 2019',
+      'September 2019',
+      'August 2019',
+      'July 2019',
+      'June 2019',
+      'May 2019',
+      'April 2019',
+      'March 2019',
+    ]);
+    expect(container.querySelector('.review__date')).toHaveAttribute('datetime', '2019-12-15');
+  });
+
   it('shows the total number of reviews in the heading', () => {
     renderWithRouter(<OfferReviews offerId="1" reviews={reviews} user={user} />);
 

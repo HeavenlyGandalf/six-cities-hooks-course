@@ -1,8 +1,9 @@
 import type {JSX} from 'react';
 import {Link} from 'react-router';
-import {AppRoute, UiText} from '../../const';
+import {AppRoute, MAX_REVIEWS, UiText} from '../../const';
 import type {Review} from '../../types/review';
 import type {AuthInfo} from '../../types/user';
+import {getLatestReviews} from '../../utils/review';
 import ReviewForm from '../review-form/review-form';
 import ReviewsList from '../reviews-list/reviews-list';
 
@@ -16,10 +17,11 @@ interface OfferReviewsProps {
 function OfferReviews({offerId, reviews, user}: OfferReviewsProps): JSX.Element {
   return (
     <section className="offer__section reviews" aria-labelledby="reviews-title">
+      {/* В заголовке общее число отзывов, в списке - не больше MAX_REVIEWS новых. */}
       <h2 className="offer__section-title" id="reviews-title">
         {UiText.ReviewsTitle} <span className="reviews__amount">{reviews.length}</span>
       </h2>
-      <ReviewsList reviews={reviews} />
+      <ReviewsList reviews={getLatestReviews(reviews, MAX_REVIEWS)} />
       {user ? (
         <ReviewForm offerId={offerId} />
       ) : (
