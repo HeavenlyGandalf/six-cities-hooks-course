@@ -31,8 +31,10 @@ function MainPage(): JSX.Element {
 
   // Поле поиска размонтируется вместе со списком и отменяет ожидающий поиск,
   // поэтому набранный текст применяется сразу: после «List» поле и список совпадают.
+  // Активная карточка сбрасывается: курсор больше не над списком, карта не должна подсвечивать маркер.
   const handleMapChoose = () => {
     setSearchQuery(searchText);
+    setActiveOfferId(null);
     setViewMode(ViewMode.Map);
   };
   const cityOffers = offers.filter((offer) => offer.city.name === activeCity);
