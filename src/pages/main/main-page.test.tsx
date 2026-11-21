@@ -1,6 +1,7 @@
 import {act, fireEvent, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
+import {installMatchMedia, setWidth, TestWidth} from '../../mocks/match-media';
 import {renderWithRouter} from '../../mocks/render-with-router';
 import type {OfferPreview} from '../../types/offer';
 import {DEBOUNCE_DELAY_MS} from '../../variant';
@@ -114,6 +115,82 @@ describe('MainPage', () => {
 
       await user.tab();
       expect(getActiveCards()).toHaveLength(0);
+    });
+  });
+
+  describe('list / map switch', () => {
+    function getMap() {
+      return document.querySelector('.places-layout__map');
+    }
+
+    function getList() {
+      return document.querySelector('.places-layout__list');
+    }
+
+    function getSwitch() {
+      return screen.queryByRole('radiogroup', {name: 'View'});
+    }
+
+    function resizeTo(width: number) {
+      act(() => {
+        setWidth(width);
+      });
+    }
+
+    function renderOnPhone() {
+      installMatchMedia(TestWidth.Phone);
+      renderWithRouter(<MainPage />);
+    }
+
+    it('shows the switch and mounts only the list by default on a phone', () => {
+      renderOnPhone();
+
+      expect(getSwitch()).toBeInTheDocument();
+      expect(screen.getByRole('radio', {name: 'List'})).toBeChecked();
+      expect(getList()).toBeInTheDocument();
+      expect(getMap()).not.toBeInTheDocument();
+    });
+
+    it('mounts only the map after choosing Map on a phone', async () => {
+      const user = userEvent.setup();
+      renderOnPhone();
+
+      await user.click(screen.getByRole('radio', {name: 'Map'}));
+
+      expect(screen.getByRole('radio', {name: 'Map'})).toBeChecked();
+      expect(getMap()).toBeInTheDocument();
+      expect(getList()).not.toBeInTheDocument();
+    });
+
+    it('hides the switch and shows both list and map after widening a phone to a tablet', () => {
+      renderOnPhone();
+
+      resizeTo(TestWidth.Tablet);
+
+      expect(getSwitch()).not.toBeInTheDocument();
+      expect(getList()).toBeInTheDocument();
+      expect(getMap()).toBeInTheDocument();
+    });
+
+    it('keeps Map chosen after widening to a tablet and narrowing back to a phone', async () => {
+      const user = userEvent.setup();
+      renderOnPhone();
+      await user.click(screen.getByRole('radio', {name: 'Map'}));
+
+      resizeTo(TestWidth.Tablet);
+      resizeTo(TestWidth.Phone);
+
+      expect(screen.getByRole('radio', {name: 'Map'})).toBeChecked();
+      expect(getMap()).toBeInTheDocument();
+      expect(getList()).not.toBeInTheDocument();
+    });
+
+    it('shows both list and map without the switch on a desktop', () => {
+      renderWithRouter(<MainPage />);
+
+      expect(getSwitch()).not.toBeInTheDocument();
+      expect(getList()).toBeInTheDocument();
+      expect(getMap()).toBeInTheDocument();
     });
   });
 
