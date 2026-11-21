@@ -13,6 +13,7 @@ describe('LoginPage', () => {
     expect(password).toHaveValue('');
     expect(password).not.toHaveClass('field--error');
     expect(password).not.toHaveAttribute('aria-invalid');
+    expect(password).toHaveAccessibleDescription('Password must contain at least one letter and one digit');
     expect(screen.getByRole('button', {name: 'Sign in'})).toHaveAttribute('type', 'submit');
   });
 
