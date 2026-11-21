@@ -5,11 +5,13 @@ import {reviews} from '../../mocks/reviews';
 import OfferPage from './offer-page';
 
 describe('OfferPage', () => {
-  it('puts the offer title into the tab title', () => {
-    render(<OfferPage />);
+  it('puts the offer title into the tab title in <head>', () => {
+    const {container} = render(<OfferPage />);
 
     expect(document.title).toContain(offer.title);
-    expect(document.title).toBe(`Six Cities - ${offer.title}`);
+    // document.title берёт первый <title> во всём документе; проверяем, что React поднял его из body в head.
+    expect(container.querySelector('title')).toBeNull();
+    expect(document.head.querySelector('title')).toHaveTextContent(offer.title);
   });
 
   it('shows no more than 6 photos of 7', () => {
