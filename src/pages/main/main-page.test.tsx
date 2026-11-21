@@ -1,6 +1,7 @@
 import {act, fireEvent, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
+import {UiText} from '../../const';
 import {installMatchMedia, setWidth, TestWidth} from '../../mocks/match-media';
 import {renderWithRouter} from '../../mocks/render-with-router';
 import type {OfferPreview} from '../../types/offer';
@@ -191,6 +192,58 @@ describe('MainPage', () => {
       expect(getSwitch()).not.toBeInTheDocument();
       expect(getList()).toBeInTheDocument();
       expect(getMap()).toBeInTheDocument();
+    });
+  });
+
+  describe('search and view switch on a phone', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    function getSearchField() {
+      return screen.getByRole('searchbox', {name: UiText.SearchByTitle});
+    }
+
+    function chooseView(name: string) {
+      fireEvent.click(screen.getByRole('radio', {name}));
+    }
+
+    function waitForDelay() {
+      act(() => {
+        vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+      });
+    }
+
+    function renderOnPhoneWithFakeTimers() {
+      vi.useFakeTimers();
+      installMatchMedia(TestWidth.Phone);
+      renderWithRouter(<MainPage />);
+    }
+
+    it('keeps the applied search text in the field and the list after Map and back to List', () => {
+      renderOnPhoneWithFakeTimers();
+      fireEvent.change(getSearchField(), {target: {value: 'one'}});
+      waitForDelay();
+
+      chooseView(UiText.ViewMap);
+      chooseView(UiText.ViewList);
+
+      expect(getSearchField()).toHaveValue('one');
+      expect(screen.getAllByRole('article')).toHaveLength(1);
+      expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('1 places to stay in Paris');
+    });
+
+    it('applies the search text still waiting for the delay when Map is chosen', () => {
+      renderOnPhoneWithFakeTimers();
+      fireEvent.change(getSearchField(), {target: {value: 'one'}});
+
+      chooseView(UiText.ViewMap);
+      chooseView(UiText.ViewList);
+      waitForDelay();
+
+      expect(getSearchField()).toHaveValue('one');
+      expect(screen.getAllByRole('article')).toHaveLength(1);
+      expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('1 places to stay in Paris');
     });
   });
 
