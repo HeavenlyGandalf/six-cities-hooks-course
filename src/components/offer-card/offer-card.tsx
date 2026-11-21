@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import {generatePath, Link} from 'react-router';
 import {AppRoute, CURRENCY_SIGN, Rating, UiText} from '../../const';
 import type {OfferPreview} from '../../types/offer';
 import {getRatingStars, getRatingWidth} from '../../utils/rating';
@@ -54,7 +55,7 @@ function OfferCard({offer, variant = 'grid'}: OfferCardProps): JSX.Element {
           {/* Ширина звёзд задаётся только переменной --rating, как в вёрстке. */}
           <span className="rating__fill" style={{'--rating': getRatingWidth(rating)}} />
         </div>
-        <h3 className="place-card__title"><a href={`${AppRoute.Offer}/${id}`}>{title}</a></h3>
+        <h3 className="place-card__title"><Link to={generatePath(AppRoute.OfferPattern, {id})}>{title}</Link></h3>
         <p className="place-card__type">{type}</p>
       </div>
       {/* В строке закладка стоит после .place-card__info: под неё отступ справа в main.css. */}

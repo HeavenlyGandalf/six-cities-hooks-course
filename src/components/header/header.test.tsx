@@ -1,5 +1,6 @@
-import {render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import {describe, expect, it} from 'vitest';
+import {renderWithRouter} from '../../mocks/render-with-router';
 import type {AuthInfo} from '../../types/user';
 import Header from './header';
 
@@ -13,7 +14,7 @@ const user: AuthInfo = {
 
 describe('Header', () => {
   it('shows email, favorites count and Sign out for a signed-in user', () => {
-    render(<Header user={user} favoriteCount={7} />);
+    renderWithRouter(<Header user={user} favoriteCount={7} />);
 
     expect(screen.getByText('test.user@example.com')).toBeInTheDocument();
     expect(screen.getByLabelText('В избранном: 7')).toHaveTextContent('7');
@@ -22,7 +23,7 @@ describe('Header', () => {
   });
 
   it('shows a Sign in link to /login for a guest', () => {
-    render(<Header user={null} favoriteCount={0} />);
+    renderWithRouter(<Header user={null} favoriteCount={0} />);
 
     expect(screen.getByRole('link', {name: 'Sign in'})).toHaveAttribute('href', '/login');
     expect(screen.queryByRole('link', {name: 'Sign out'})).not.toBeInTheDocument();
@@ -30,7 +31,7 @@ describe('Header', () => {
   });
 
   it('marks Sign in as the current page on the login page', () => {
-    render(<Header user={null} favoriteCount={0} isSignInCurrent />);
+    renderWithRouter(<Header user={null} favoriteCount={0} isSignInCurrent />);
 
     expect(screen.getByRole('link', {name: 'Sign in'})).toHaveAttribute('aria-current', 'page');
   });
