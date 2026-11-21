@@ -131,6 +131,7 @@ describe('OfferCard', () => {
 
       expect(screen.getByRole('link', {name: 'Test apartment'})).toHaveFocus();
       expect(onCardHover).not.toHaveBeenCalledWith(null);
+      expect(onCardHover).toHaveBeenLastCalledWith('test-offer-id');
     });
 
     it('reports null when focus leaves the card', async () => {
@@ -169,17 +170,20 @@ describe('OfferCard', () => {
       expect(screen.getByRole('article')).toHaveClass('place-card', 'place-card--row', 'place-card--active');
     });
 
-    it('works without the callback', async () => {
+    it('does not throw on hover, focus and blur without onCardHover', async () => {
       const user = userEvent.setup();
       renderInteractiveCard();
+      const article = screen.getByRole('article');
 
-      await user.hover(screen.getByRole('article'));
-      await user.tab();
-      await user.unhover(screen.getByRole('article'));
-      await user.tab();
-      await user.tab();
+      const interact = async () => {
+        await user.hover(article);
+        await user.tab();
+        await user.unhover(article);
+        await user.tab();
+        await user.tab();
+      };
 
-      expect(screen.getByRole('article')).not.toHaveClass('place-card--active');
+      await expect(interact()).resolves.toBeUndefined();
     });
   });
 });

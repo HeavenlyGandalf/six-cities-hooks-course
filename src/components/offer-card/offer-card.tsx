@@ -25,6 +25,7 @@ function OfferCard({offer, variant = 'grid', isActive = false, onCardHover}: Off
   const {id, title, type, price, previewImage, isFavorite, isPremium, rating} = offer;
   const isRow = variant === 'row';
   const cardClassName = `place-card${isRow ? ' place-card--row' : ''}${isActive ? ' place-card--active' : ''}`;
+  const bookmarkClassName = `bookmark place-card__bookmark${isFavorite ? ' bookmark--active' : ''}`;
 
   // Фокус, перешедший на другой элемент той же карточки, не сбрасывает активность.
   const handleBlur = (event: FocusEvent<HTMLElement>) => {
@@ -34,7 +35,6 @@ function OfferCard({offer, variant = 'grid', isActive = false, onCardHover}: Off
     }
     onCardHover?.(null);
   };
-  const bookmarkClassName = `bookmark place-card__bookmark${isFavorite ? ' bookmark--active' : ''}`;
 
   const bookmark = (
     <button className={bookmarkClassName} type="button" aria-pressed={isFavorite}>
