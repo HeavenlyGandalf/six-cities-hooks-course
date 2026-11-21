@@ -20,3 +20,8 @@ export function groupByCity(offers: OfferPreview[]): CityGroup[] {
 
   return Array.from(groups, ([city, cityOffers]) => ({city, offers: cityOffers}));
 }
+
+// Соседние предложения: без текущего, в исходном порядке, не больше limit.
+export function getNearOffers(offers: OfferPreview[], currentId: string, limit: number): OfferPreview[] {
+  return offers.filter((offer) => offer.id !== currentId).slice(0, limit);
+}

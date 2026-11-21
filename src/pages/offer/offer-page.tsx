@@ -11,13 +11,14 @@ import {offers} from '../../mocks/offers';
 import {reviews} from '../../mocks/reviews';
 import {authInfo} from '../../mocks/user';
 import {capitalize, pluralize} from '../../utils/format';
+import {getNearOffers} from '../../utils/offers';
 import {getRatingWidth} from '../../utils/rating';
 
 // Этап 2 статичный: предложение, отзывы и соседние берутся из моков.
 // Загрузка по id из адреса появится вместе с маршрутизацией и store.
 function OfferPage(): JSX.Element {
   const {title, type, price, isFavorite, isPremium, rating, description, bedrooms, goods, host, images, maxAdults} = offer;
-  const nearOffers = offers.filter((nearOffer) => nearOffer.id !== offer.id).slice(0, MAX_NEAR_PLACES);
+  const nearOffers = getNearOffers(offers, offer.id, MAX_NEAR_PLACES);
   const favoriteCount = offers.filter((item) => item.isFavorite).length;
   const bookmarkClassName = `bookmark offer-summary__bookmark${isFavorite ? ' bookmark--active' : ''}`;
 

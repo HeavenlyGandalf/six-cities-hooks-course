@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import type {OfferPreview} from '../types/offer';
-import {groupByCity} from './offers';
+import {getNearOffers, groupByCity} from './offers';
 
 function createOffer(id: string, cityName: string): OfferPreview {
   return {
@@ -34,5 +34,17 @@ describe('groupByCity', () => {
 
   it('returns no groups for no offers', () => {
     expect(groupByCity([])).toEqual([]);
+  });
+});
+
+describe('getNearOffers', () => {
+  const offers = ['a', 'b', 'c', 'd', 'e'].map((id) => createOffer(id, 'Paris'));
+
+  it('excludes the current offer, keeps order and cuts to the limit', () => {
+    expect(getNearOffers(offers, 'b', 3).map((offer) => offer.id)).toEqual(['a', 'c', 'd']);
+  });
+
+  it('returns all other offers when there are fewer than the limit', () => {
+    expect(getNearOffers(offers, 'a', 10).map((offer) => offer.id)).toEqual(['b', 'c', 'd', 'e']);
   });
 });
