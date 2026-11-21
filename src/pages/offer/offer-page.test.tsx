@@ -91,7 +91,9 @@ describe('OfferPage', () => {
     renderOfferPage(offer.id);
 
     const section = screen.getByRole('region', {name: `Reviews · ${String(reviews.length)}`});
-    expect(within(section).getAllByRole('listitem')).toHaveLength(Math.min(reviews.length, MAX_REVIEWS));
+    // В моках больше MAX_REVIEWS отзывов, поэтому на странице виден лимит.
+    expect(reviews.length).toBeGreaterThan(MAX_REVIEWS);
+    expect(within(section).getAllByRole('listitem')).toHaveLength(MAX_REVIEWS);
     expect(within(section).getByRole('link', {name: 'Sign in'})).toHaveAttribute('href', '/login');
     expect(within(section).queryByRole('button', {name: 'Submit'})).not.toBeInTheDocument();
   });

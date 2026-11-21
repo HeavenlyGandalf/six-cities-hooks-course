@@ -16,6 +16,13 @@ describe('MapStub', () => {
     expect(container.querySelectorAll('.map__pin:not(.map__pin--active)')).toHaveLength(1);
   });
 
+  it('shows only the orange pin when there are no near offers', () => {
+    const {container} = render(<MapStub pinCount={0} />);
+
+    expect(container.querySelectorAll('.map__pin')).toHaveLength(1);
+    expect(container.querySelector('.map__pin')).toHaveClass('map__pin--active');
+  });
+
   it('keeps the note about Yandex Maps', () => {
     const {container} = render(<MapStub pinCount={3} />);
 
