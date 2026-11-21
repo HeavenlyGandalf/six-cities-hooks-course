@@ -103,6 +103,7 @@ export const UiText = {
   MapNote: 'Здесь - Яндекс Карты',
   PlacesToStayIn: 'places to stay in',
   SortBy: 'Sort by',
+  SearchByTitle: 'Search by title',
   PerNight: '/ night',
   Premium: 'Premium',
   AddToFavorites: 'Add to favorites',

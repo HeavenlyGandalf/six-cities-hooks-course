@@ -1,8 +1,9 @@
-import {act, screen} from '@testing-library/react';
+import {act, fireEvent, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {renderWithRouter} from '../../mocks/render-with-router';
 import type {OfferPreview} from '../../types/offer';
+import {DEBOUNCE_DELAY_MS} from '../../variant';
 import MainPage from './main-page';
 
 const {fixtureOffers} = vi.hoisted(() => {
@@ -113,6 +114,56 @@ describe('MainPage', () => {
 
       await user.tab();
       expect(getActiveCards()).toHaveLength(0);
+    });
+  });
+
+  describe('search by title', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    function waitForSearchDelay() {
+      act(() => {
+        vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+      });
+    }
+
+    function search(query: string) {
+      fireEvent.change(screen.getByRole('searchbox', {name: 'Search by title'}), {target: {value: query}});
+    }
+
+    it('filters the list by title ignoring case only after the delay', () => {
+      vi.useFakeTimers();
+      renderWithRouter(<MainPage />);
+
+      search('ONE');
+      expect(screen.getAllByRole('article')).toHaveLength(2);
+
+      waitForSearchDelay();
+
+      expect(screen.getAllByRole('article')).toHaveLength(1);
+      expect(screen.getByText('Paris flat one')).toBeInTheDocument();
+    });
+
+    it('shows the number of found places in the heading', () => {
+      vi.useFakeTimers();
+      renderWithRouter(<MainPage />);
+
+      search('two');
+      waitForSearchDelay();
+
+      expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('1 places to stay in Paris');
+    });
+
+    it('searches only inside the active city', () => {
+      vi.useFakeTimers();
+      renderWithRouter(<MainPage />);
+
+      search('canal');
+      waitForSearchDelay();
+
+      expect(screen.queryAllByRole('article')).toHaveLength(0);
+      expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('0 places to stay in Paris');
     });
   });
 });

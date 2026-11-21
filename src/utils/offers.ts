@@ -25,3 +25,13 @@ export function groupByCity(offers: OfferPreview[]): CityGroup[] {
 export function getNearOffers(offers: OfferPreview[], currentId: string, limit: number): OfferPreview[] {
   return offers.filter((offer) => offer.id !== currentId).slice(0, limit);
 }
+
+// Предложения, в названии которых есть query, без учёта регистра.
+// Пробелы по краям query не считаются; пустой query оставляет весь список.
+export function filterByTitle(offers: OfferPreview[], query: string): OfferPreview[] {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (normalizedQuery === '') {
+    return offers;
+  }
+  return offers.filter((offer) => offer.title.toLowerCase().includes(normalizedQuery));
+}
