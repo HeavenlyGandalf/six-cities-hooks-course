@@ -41,13 +41,16 @@ export type SortOption = typeof SORT_OPTIONS[number];
 
 export const DEFAULT_SORT: SortOption = 'Popular';
 
+// Префикс адреса предложения: из него собираются и ссылка, и шаблон маршрута.
+const OFFER_PATH = '/offer';
+
 // Адреса маршрутов. Offer - префикс ссылки на предложение, OfferPattern - шаблон маршрута с :id.
 export const AppRoute = {
   Main: '/',
   Login: '/login',
   Favorites: '/favorites',
-  Offer: '/offer',
-  OfferPattern: '/offer/:id',
+  Offer: OFFER_PATH,
+  OfferPattern: `${OFFER_PATH}/:id`,
   NotFound: '*',
 } as const;
 
