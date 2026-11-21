@@ -1,9 +1,19 @@
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import ErrorScreen from './error-screen';
 
 describe('ErrorScreen', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('sets the error tab title', () => {
+    render(<ErrorScreen />);
+
+    expect(document.title).toBe('Six Cities - Server is unavailable');
+  });
+
   it('shows the server unavailable alert from the markup', () => {
     const {container} = render(<ErrorScreen />);
 
@@ -22,5 +32,16 @@ describe('ErrorScreen', () => {
     await user.click(screen.getByRole('button', {name: 'Try again'}));
 
     expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+
+  it('reloads the page on Try again by default', async () => {
+    const user = userEvent.setup();
+    const reload = vi.fn();
+    vi.stubGlobal('location', {reload});
+    render(<ErrorScreen />);
+
+    await user.click(screen.getByRole('button', {name: 'Try again'}));
+
+    expect(reload).toHaveBeenCalledTimes(1);
   });
 });
