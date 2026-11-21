@@ -73,8 +73,8 @@ describe('reviewFormReducer', () => {
       expect(reviewFormReducer(state, action)).toBe(state);
     });
 
-    it('blurText on an already touched field', () => {
-      const state = stateWith('editing', true);
+    it.each(notSubmitting)('blurText on an already touched field in %s', (status) => {
+      const state = stateWith(status, true);
 
       expect(reviewFormReducer(state, blurText)).toBe(state);
     });

@@ -34,8 +34,12 @@ export function reviewFormReducer(state: ReviewFormState, action: ReviewFormActi
       return state.status === 'success' || state.status === 'error'
         ? {...state, status: 'editing'}
         : state;
+    case 'blurText':
+      return isSubmitting || state.isTextTouched ? state : {...state, isTextTouched: true};
+    default: {
+      // Новый тип action без своей ветки не скомпилируется: здесь action.type уже never.
+      const unhandledType: never = action.type;
+      throw new Error(`Unknown review form action: ${String(unhandledType)}`);
+    }
   }
-
-  // Остался последний тип - blurText: TypeScript сузил action.type после switch.
-  return isSubmitting || state.isTextTouched ? state : {...state, isTextTouched: true};
 }

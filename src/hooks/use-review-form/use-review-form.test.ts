@@ -106,6 +106,20 @@ describe('useReviewForm: submit', () => {
     expect(result.current.isSubmitting).toBe(true);
   });
 
+  it('sends the text without spaces at the edges', () => {
+    deferSend();
+    const {result} = renderFilledForm();
+    act(() => {
+      result.current.changeText(`  ${VALID_TEXT}  `);
+    });
+
+    act(() => {
+      result.current.submit();
+    });
+
+    expect(sendReview).toHaveBeenCalledWith(OFFER_ID, {rating: RATING, text: VALID_TEXT});
+  });
+
   it('clears the form and removes the draft after success', async () => {
     const send = deferSend();
     const {result} = renderFilledForm();
