@@ -1,6 +1,8 @@
 import {useState, type ChangeEvent, type JSX, type SubmitEvent} from 'react';
 import {RATING_TITLES, ReviewLength, UiText} from '../../const';
-import {isReviewTextValid, isReviewValid} from '../../utils/review';
+import {usePersistentState} from '../../hooks/use-persistent-state/use-persistent-state';
+import {EMPTY_REVIEW_DRAFT, isReviewDraft, isReviewTextValid, isReviewValid} from '../../utils/review';
+import {getReviewDraftKey} from '../../utils/storage-keys';
 
 // Строк в поле отзыва, как в вёрстке (course/markup/offer.html).
 const TEXTAREA_ROWS = 5;
@@ -8,11 +10,20 @@ const TEXTAREA_ROWS = 5;
 const HINT_ID = 'review-hint';
 const ERROR_ID = 'review-error';
 
+interface ReviewFormProps {
+  offerId: string;
+}
+
 // Отправка с задержкой и блокировкой формы появится в H8 (история 4.4).
 // Пока Submit имитирует успех: форма сразу очищается.
-function ReviewForm(): JSX.Element {
-  const [rating, setRating] = useState<number | null>(null);
-  const [text, setText] = useState('');
+// Оценка и текст - черновик в localStorage (H6): переживают перезагрузку и видны во второй вкладке.
+function ReviewForm({offerId}: ReviewFormProps): JSX.Element {
+  const [draft, setDraft, removeDraft] = usePersistentState(
+    getReviewDraftKey(offerId),
+    EMPTY_REVIEW_DRAFT,
+    isReviewDraft,
+  );
+  const {rating, text} = draft;
   // Поле покидали хотя бы раз: до этого ошибка длины не показывается.
   const [isTextTouched, setIsTextTouched] = useState(false);
 
@@ -20,11 +31,11 @@ function ReviewForm(): JSX.Element {
   const hasTextError = isTextTouched && text !== '' && !isReviewTextValid(text);
 
   const handleRatingChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setRating(Number(event.target.value));
+    setDraft({...draft, rating: Number(event.target.value)});
   };
 
   const handleTextChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    setText(event.target.value);
+    setDraft({...draft, text: event.target.value});
   };
 
   const handleTextBlur = () => {
@@ -36,8 +47,7 @@ function ReviewForm(): JSX.Element {
     if (!isValid) {
       return;
     }
-    setRating(null);
-    setText('');
+    removeDraft();
     setIsTextTouched(false);
   };
 

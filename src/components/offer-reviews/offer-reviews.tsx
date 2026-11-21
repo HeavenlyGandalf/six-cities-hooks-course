@@ -7,12 +7,13 @@ import ReviewForm from '../review-form/review-form';
 import ReviewsList from '../reviews-list/reviews-list';
 
 interface OfferReviewsProps {
+  offerId: string;
   reviews: Review[];
   // null - гость: вместо формы приглашение войти (course/markup/offer-not-logged.html).
   user: AuthInfo | null;
 }
 
-function OfferReviews({reviews, user}: OfferReviewsProps): JSX.Element {
+function OfferReviews({offerId, reviews, user}: OfferReviewsProps): JSX.Element {
   return (
     <section className="offer__section reviews" aria-labelledby="reviews-title">
       <h2 className="offer__section-title" id="reviews-title">
@@ -20,7 +21,7 @@ function OfferReviews({reviews, user}: OfferReviewsProps): JSX.Element {
       </h2>
       <ReviewsList reviews={reviews} />
       {user ? (
-        <ReviewForm />
+        <ReviewForm offerId={offerId} />
       ) : (
         <p className="reviews__login">
           <Link to={AppRoute.Login}>{UiText.SignIn}</Link> {UiText.ReviewLoginSuffix}

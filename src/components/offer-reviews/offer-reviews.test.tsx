@@ -32,21 +32,21 @@ const user: AuthInfo = {
 
 describe('OfferReviews', () => {
   it('shows the total number of reviews in the heading', () => {
-    renderWithRouter(<OfferReviews reviews={reviews} user={user} />);
+    renderWithRouter(<OfferReviews offerId="1" reviews={reviews} user={user} />);
 
     expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('Reviews · 2');
     expect(screen.getAllByRole('listitem')).toHaveLength(2);
   });
 
   it('shows the review form to a signed in user', () => {
-    renderWithRouter(<OfferReviews reviews={reviews} user={user} />);
+    renderWithRouter(<OfferReviews offerId="1" reviews={reviews} user={user} />);
 
     expect(screen.getByRole('heading', {level: 3, name: 'Your review'})).toBeInTheDocument();
     expect(screen.queryByRole('link', {name: 'Sign in'})).not.toBeInTheDocument();
   });
 
   it('invites a guest to sign in instead of the form', () => {
-    const {container} = renderWithRouter(<OfferReviews reviews={reviews} user={null} />);
+    const {container} = renderWithRouter(<OfferReviews offerId="1" reviews={reviews} user={null} />);
 
     expect(screen.getByRole('link', {name: 'Sign in'})).toHaveAttribute('href', '/login');
     expect(container.querySelector('.reviews__login')).toHaveTextContent('Sign in to leave a review');
