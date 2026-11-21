@@ -1,4 +1,4 @@
-import type {JSX} from 'react';
+import {useState, type JSX} from 'react';
 import {Link} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
@@ -8,9 +8,11 @@ import {offers} from '../../mocks/offers';
 import {stubUser} from '../../mocks/user';
 import {formatPageTitle} from '../../utils/format';
 
-// Этап 2 статичный: город и сортировка зафиксированы, обработчиков нет.
-// Ссылки городов ведут на главную, выбор города появится вместе с маршрутизацией и store.
+// Город и сортировка пока зафиксированы: ссылки городов ведут на главную,
+// выбор города и сортировка появятся вместе со store.
+// Активная карточка - локальное состояние страницы, позже её получит карта (H5).
 function MainPage(): JSX.Element {
+  const [activeOfferId, setActiveOfferId] = useState<string | null>(null);
   const activeCity = DEFAULT_CITY;
   const cityOffers = offers.filter((offer) => offer.city.name === activeCity);
   const favoriteCount = offers.filter((offer) => offer.isFavorite).length;
@@ -96,7 +98,7 @@ function MainPage(): JSX.Element {
               </div>
             </div>
 
-            <OffersList offers={cityOffers} />
+            <OffersList offers={cityOffers} activeOfferId={activeOfferId} onCardHover={setActiveOfferId} />
           </section>
         </div>
       </main>

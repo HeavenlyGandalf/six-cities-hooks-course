@@ -1,4 +1,5 @@
-import {screen} from '@testing-library/react';
+import {act, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {describe, expect, it, vi} from 'vitest';
 import {renderWithRouter} from '../../mocks/render-with-router';
 import type {OfferPreview} from '../../types/offer';
@@ -57,5 +58,57 @@ describe('MainPage', () => {
     expect(activeCity).toHaveClass('cities__link--active');
     expect(activeCity).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('navigation', {name: 'Cities'}).querySelectorAll('.cities__link--active')).toHaveLength(1);
+  });
+
+  describe('active card', () => {
+    function getActiveCards() {
+      return document.querySelectorAll('.place-card--active');
+    }
+
+    it('has no active card initially', () => {
+      renderWithRouter(<MainPage />);
+
+      expect(getActiveCards()).toHaveLength(0);
+    });
+
+    it('makes the hovered card active and resets it on unhover', async () => {
+      const user = userEvent.setup();
+      renderWithRouter(<MainPage />);
+      const [firstCard, secondCard] = screen.getAllByRole('article');
+
+      await user.hover(firstCard);
+      expect(firstCard).toHaveClass('place-card--active');
+      expect(getActiveCards()).toHaveLength(1);
+
+      await user.hover(secondCard);
+      expect(secondCard).toHaveClass('place-card--active');
+      expect(getActiveCards()).toHaveLength(1);
+
+      await user.unhover(secondCard);
+      expect(getActiveCards()).toHaveLength(0);
+    });
+
+    it('makes the card active when focus comes inside with Tab and resets it when focus leaves', async () => {
+      const user = userEvent.setup();
+      renderWithRouter(<MainPage />);
+      const [firstCard, secondCard] = screen.getAllByRole('article');
+
+      // Начинаем со ссылки первой карточки, чтобы не проходить Tab через шапку и фильтры.
+      act(() => {
+        screen.getByRole('link', {name: 'Paris flat one'}).focus();
+      });
+      expect(firstCard).toHaveClass('place-card--active');
+
+      await user.tab();
+      expect(secondCard).toHaveClass('place-card--active');
+      expect(getActiveCards()).toHaveLength(1);
+
+      await user.tab();
+      expect(screen.getByRole('link', {name: 'Paris flat two'})).toHaveFocus();
+      expect(secondCard).toHaveClass('place-card--active');
+
+      await user.tab();
+      expect(getActiveCards()).toHaveLength(0);
+    });
   });
 });
