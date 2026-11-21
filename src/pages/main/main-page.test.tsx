@@ -129,7 +129,7 @@ describe('MainPage', () => {
     }
 
     function getSwitch() {
-      return screen.queryByRole('radiogroup', {name: 'View'});
+      return screen.queryByRole('radiogroup', {name: UiText.ViewLabel});
     }
 
     function resizeTo(width: number) {
@@ -147,7 +147,7 @@ describe('MainPage', () => {
       renderOnPhone();
 
       expect(getSwitch()).toBeInTheDocument();
-      expect(screen.getByRole('radio', {name: 'List'})).toBeChecked();
+      expect(screen.getByRole('radio', {name: UiText.ViewList})).toBeChecked();
       expect(getList()).toBeInTheDocument();
       expect(getMap()).not.toBeInTheDocument();
     });
@@ -156,9 +156,9 @@ describe('MainPage', () => {
       const user = userEvent.setup();
       renderOnPhone();
 
-      await user.click(screen.getByRole('radio', {name: 'Map'}));
+      await user.click(screen.getByRole('radio', {name: UiText.ViewMap}));
 
-      expect(screen.getByRole('radio', {name: 'Map'})).toBeChecked();
+      expect(screen.getByRole('radio', {name: UiText.ViewMap})).toBeChecked();
       expect(getMap()).toBeInTheDocument();
       expect(getList()).not.toBeInTheDocument();
     });
@@ -176,14 +176,26 @@ describe('MainPage', () => {
     it('keeps Map chosen after widening to a tablet and narrowing back to a phone', async () => {
       const user = userEvent.setup();
       renderOnPhone();
-      await user.click(screen.getByRole('radio', {name: 'Map'}));
+      await user.click(screen.getByRole('radio', {name: UiText.ViewMap}));
 
       resizeTo(TestWidth.Tablet);
       resizeTo(TestWidth.Phone);
 
-      expect(screen.getByRole('radio', {name: 'Map'})).toBeChecked();
+      expect(screen.getByRole('radio', {name: UiText.ViewMap})).toBeChecked();
       expect(getMap()).toBeInTheDocument();
       expect(getList()).not.toBeInTheDocument();
+    });
+
+    it('mounts the list again and unmounts the map after Map and back to List on a phone', async () => {
+      const user = userEvent.setup();
+      renderOnPhone();
+
+      await user.click(screen.getByRole('radio', {name: UiText.ViewMap}));
+      await user.click(screen.getByRole('radio', {name: UiText.ViewList}));
+
+      expect(screen.getByRole('radio', {name: UiText.ViewList})).toBeChecked();
+      expect(getList()).toBeInTheDocument();
+      expect(getMap()).not.toBeInTheDocument();
     });
 
     it('shows both list and map without the switch on a desktop', () => {
