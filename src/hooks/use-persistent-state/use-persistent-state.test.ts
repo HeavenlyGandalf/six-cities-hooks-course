@@ -20,6 +20,13 @@ function renderPersistentState(key = KEY) {
   });
 }
 
+// Событие storage, которое браузер присылает в эту вкладку, когда пишет другая.
+function dispatchStorage(init: StorageEventInit) {
+  act(() => {
+    window.dispatchEvent(new StorageEvent('storage', {storageArea: localStorage, ...init}));
+  });
+}
+
 afterEach(() => {
   localStorage.clear();
   vi.restoreAllMocks();
@@ -136,6 +143,65 @@ describe('usePersistentState: writing', () => {
   });
 });
 
+describe('usePersistentState: storage event', () => {
+  it('picks up a value written in another tab', () => {
+    const {result} = renderPersistentState();
+
+    dispatchStorage({key: KEY, newValue: '{"text":"from another tab"}'});
+
+    expect(result.current[0]).toEqual({text: 'from another tab'});
+  });
+
+  it('returns initialValue when another tab removes the key', () => {
+    localStorage.setItem(KEY, JSON.stringify({text: 'saved'}));
+    const {result} = renderPersistentState();
+
+    dispatchStorage({key: KEY, newValue: null});
+
+    expect(result.current[0]).toEqual(INITIAL);
+  });
+
+  it('returns initialValue when another tab clears the storage', () => {
+    localStorage.setItem(KEY, JSON.stringify({text: 'saved'}));
+    const {result} = renderPersistentState();
+
+    dispatchStorage({key: null, newValue: null});
+
+    expect(result.current[0]).toEqual(INITIAL);
+  });
+
+  it.each([
+    ['broken JSON', '{text:'],
+    ['a wrong shape', '{"text":5}'],
+  ])('returns initialValue for %s from another tab', (_name, newValue) => {
+    localStorage.setItem(KEY, JSON.stringify({text: 'saved'}));
+    const {result} = renderPersistentState();
+
+    dispatchStorage({key: KEY, newValue});
+
+    expect(result.current[0]).toEqual(INITIAL);
+  });
+
+  it('ignores other keys and sessionStorage', () => {
+    localStorage.setItem(KEY, JSON.stringify({text: 'saved'}));
+    const {result} = renderPersistentState();
+
+    dispatchStorage({key: OTHER_KEY, newValue: '{"text":"other"}'});
+    dispatchStorage({key: KEY, newValue: '{"text":"session"}', storageArea: sessionStorage});
+
+    expect(result.current[0]).toEqual({text: 'saved'});
+  });
+
+  it('stops listening after unmount', () => {
+    const removeListener = vi.spyOn(window, 'removeEventListener');
+    const {unmount} = renderPersistentState();
+
+    unmount();
+
+    expect(removeListener).toHaveBeenCalledWith('storage', expect.any(Function));
+  });
+});
+
 describe('usePersistentState: key change', () => {
   it('reads the value of the new key instead of keeping the old one', () => {
     localStorage.setItem(KEY, JSON.stringify({text: 'first'}));
@@ -170,5 +236,16 @@ describe('usePersistentState: key change', () => {
 
     expect(localStorage.getItem(KEY)).toBe('{"text":"first"}');
     expect(localStorage.getItem(OTHER_KEY)).toBe('{"text":"second"}');
+  });
+
+  it('listens to the new key only', () => {
+    const {result, rerender} = renderPersistentState();
+
+    rerender({storageKey: OTHER_KEY});
+    dispatchStorage({key: KEY, newValue: '{"text":"old key"}'});
+    expect(result.current[0]).toEqual(INITIAL);
+
+    dispatchStorage({key: OTHER_KEY, newValue: '{"text":"new key"}'});
+    expect(result.current[0]).toEqual({text: 'new key'});
   });
 });

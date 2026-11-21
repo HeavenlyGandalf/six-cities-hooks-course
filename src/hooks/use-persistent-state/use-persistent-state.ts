@@ -1,4 +1,4 @@
-import {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 export type Validate<T> = (value: unknown) => value is T;
 
@@ -34,7 +34,7 @@ function readValue<T>(key: string, fallback: T, validate: Validate<T>): T {
 }
 
 // Состояние, которое переживает перезагрузку: хранится в localStorage под key в виде JSON.
-// При смене key читается значение
+// Изменения из других вкладок приходят событием storage. При смене key читается значение
 // нового ключа, значение старого с собой не переносится.
 export function usePersistentState<T>(
   key: string,
@@ -45,7 +45,7 @@ export function usePersistentState<T>(
   const [state, setState] = useState(() => ({key, value: readValue(key, initialValue, validate)}));
 
   // initialValue и validate часто создаются заново на каждом рендере. В ref они не попадают
-  // в зависимости колбэков.
+  // в зависимости эффекта и колбэков, поэтому подписка на storage не пересоздаётся.
   const initialValueRef = useRef(initialValue);
   const validateRef = useRef(validate);
 
@@ -61,6 +61,24 @@ export function usePersistentState<T>(
     value = readValue(key, initialValue, validate);
     setState({key, value});
   }
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      // key === null - в другой вкладке вызвали localStorage.clear().
+      if (event.storageArea !== localStorage || (event.key !== null && event.key !== key)) {
+        return;
+      }
+      const next = event.newValue === null
+        ? initialValueRef.current
+        : parseValue(event.newValue, initialValueRef.current, validateRef.current);
+      setState({key, value: next});
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, [key]);
 
   const setValue = useCallback((next: T) => {
     setState({key, value: next});
