@@ -8,3 +8,9 @@ export interface Review {
   comment: string;
   rating: number;
 }
+
+// Черновик формы отзыва в localStorage (H6). rating null - звезда ещё не выбрана.
+export interface ReviewDraft {
+  rating: number | null;
+  text: string;
+}

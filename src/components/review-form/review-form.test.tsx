@@ -1,13 +1,30 @@
-import {fireEvent, render, screen} from '@testing-library/react';
+import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {describe, expect, it} from 'vitest';
+import {afterEach, describe, expect, it} from 'vitest';
+import type {ReviewDraft} from '../../types/review';
+import {getReviewDraftKey} from '../../utils/storage-keys';
 import ReviewForm from './review-form';
+
+const OFFER_ID = '1';
+const OTHER_OFFER_ID = '2';
+const DRAFT_KEY = getReviewDraftKey(OFFER_ID);
 
 const textOf = (length: number) => 'a'.repeat(length);
 
+// Другая вкладка записала черновик: браузер присылает в эту вкладку событие storage.
+function receiveDraftFromAnotherTab(draft: ReviewDraft) {
+  act(() => {
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: DRAFT_KEY,
+      newValue: JSON.stringify(draft),
+      storageArea: localStorage,
+    }));
+  });
+}
+
 function setup() {
   const user = userEvent.setup();
-  render(<ReviewForm />);
+  render(<ReviewForm offerId={OFFER_ID} />);
   const textarea = screen.getByLabelText('Review text');
   const submit = screen.getByRole('button', {name: 'Submit'});
   // paste быстрее type для длинных строк и так же вызывает onChange.
@@ -22,8 +39,12 @@ function setup() {
 }
 
 describe('ReviewForm', () => {
+  afterEach(() => {
+    localStorage.clear();
+  });
+
   it('has five rating stars from terribly to perfect', () => {
-    render(<ReviewForm />);
+    render(<ReviewForm offerId={OFFER_ID} />);
 
     expect(screen.getAllByRole('radio')).toHaveLength(5);
     expect(screen.getByLabelText('terribly')).toHaveAttribute('value', '1');
@@ -31,7 +52,7 @@ describe('ReviewForm', () => {
   });
 
   it('has a review text field with length limits and a hint', () => {
-    render(<ReviewForm />);
+    render(<ReviewForm offerId={OFFER_ID} />);
 
     const textarea = screen.getByLabelText('Review text');
     expect(textarea).toHaveAttribute('minlength', '50');
@@ -170,5 +191,64 @@ describe('ReviewForm', () => {
     fireEvent.submit(screen.getByRole('button', {name: 'Submit'}).closest('form') ?? document.body);
 
     expect(textarea).toHaveValue(textOf(10));
+  });
+
+  describe('draft', () => {
+    it('saves the rating and the text under the draft key', async () => {
+      const {user, fillText} = setup();
+
+      await user.click(screen.getByLabelText('good'));
+      await fillText('Nice flat');
+
+      expect(JSON.parse(localStorage.getItem(DRAFT_KEY) ?? '')).toEqual({rating: 4, text: 'Nice flat'});
+    });
+
+    it('is restored when the form is opened again', async () => {
+      const user = userEvent.setup();
+      const {unmount} = render(<ReviewForm offerId={OFFER_ID} />);
+      await user.click(screen.getByLabelText('good'));
+      await user.type(screen.getByLabelText('Review text'), 'Nice flat');
+
+      unmount();
+      render(<ReviewForm offerId={OFFER_ID} />);
+
+      expect(screen.getByLabelText('Review text')).toHaveValue('Nice flat');
+      expect(screen.getByLabelText('good')).toBeChecked();
+    });
+
+    it('is removed after Submit', async () => {
+      const {user, submit, fillText} = setup();
+
+      await user.click(screen.getByLabelText('good'));
+      await fillText(textOf(60));
+      await user.click(submit);
+
+      expect(localStorage.getItem(DRAFT_KEY)).toBeNull();
+    });
+
+    it('is not shown on another offer', () => {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({rating: 4, text: 'Nice flat'}));
+
+      render(<ReviewForm offerId={OTHER_OFFER_ID} />);
+
+      expect(screen.getByLabelText('Review text')).toHaveValue('');
+    });
+
+    it('gives an empty form for a broken draft', () => {
+      localStorage.setItem(DRAFT_KEY, '{rating:');
+
+      const {textarea} = setup();
+
+      expect(textarea).toHaveValue('');
+    });
+
+    it('picks up changes from another tab', () => {
+      const {textarea} = setup();
+
+      receiveDraftFromAnotherTab({rating: 5, text: 'From another tab'});
+
+      expect(textarea).toHaveValue('From another tab');
+      expect(screen.getByLabelText('perfect')).toBeChecked();
+    });
   });
 });

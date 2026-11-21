@@ -87,7 +87,7 @@ function OfferContent({offer}: OfferContentProps): JSX.Element {
               <OfferHost host={host} description={description} />
             </section>
 
-            <OfferReviews reviews={reviews} user={stubUser} />
+            <OfferReviews offerId={offer.id} reviews={reviews} user={stubUser} />
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 import {Rating, RATING_TITLES} from '../const';
 import {describe, expect, it} from 'vitest';
-import {getReviewLength, isReviewTextValid, isReviewValid} from './review';
+import {getReviewLength, isReviewDraft, isReviewTextValid, isReviewValid} from './review';
 
 const textOf = (length: number) => 'a'.repeat(length);
 
@@ -41,6 +41,26 @@ describe('isReviewValid', () => {
 
   it('rejects a valid rating with a short text', () => {
     expect(isReviewValid(4, textOf(49))).toBe(false);
+  });
+});
+
+describe('isReviewDraft', () => {
+  it.each([
+    ['an empty draft', {rating: null, text: ''}],
+    ['an unfinished draft', {rating: 4, text: 'short'}],
+  ])('accepts %s', (_name, value) => {
+    expect(isReviewDraft(value)).toBe(true);
+  });
+
+  it.each([
+    ['null', null],
+    ['a string', 'draft'],
+    ['an object without rating', {text: ''}],
+    ['an object without text', {rating: 4}],
+    ['a rating of a wrong type', {rating: '4', text: ''}],
+    ['a text of a wrong type', {rating: 4, text: 5}],
+  ])('rejects %s', (_name, value) => {
+    expect(isReviewDraft(value)).toBe(false);
   });
 });
 
