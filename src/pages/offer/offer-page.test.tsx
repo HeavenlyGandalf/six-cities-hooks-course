@@ -109,6 +109,21 @@ describe('OfferPage', () => {
       .toBeInTheDocument();
   });
 
+  it('does not highlight a nearby card on hover or focus', async () => {
+    const user = userEvent.setup();
+    renderOfferPage(offer.id);
+
+    const near = screen.getByRole('region', {name: 'Other places in the neighbourhood'});
+    const [firstCard] = within(near).getAllByRole('article');
+    await user.hover(firstCard);
+    const bookmark = within(firstCard).getByRole('button');
+    await user.click(bookmark);
+
+    expect(bookmark).toHaveFocus();
+    expect(firstCard).not.toHaveClass('place-card--active');
+    expect(near.querySelectorAll('.place-card--active')).toHaveLength(0);
+  });
+
   it('shows the offer whose id is in the address', () => {
     renderOfferPage(secondOffer.id);
 
