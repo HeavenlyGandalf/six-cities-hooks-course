@@ -65,6 +65,12 @@ describe('MainPage', () => {
       return document.querySelectorAll('.place-card--active');
     }
 
+    function focusLink(name: string) {
+      act(() => {
+        screen.getByRole('link', {name}).focus();
+      });
+    }
+
     it('has no active card initially', () => {
       renderWithRouter(<MainPage />);
 
@@ -94,9 +100,7 @@ describe('MainPage', () => {
       const [firstCard, secondCard] = screen.getAllByRole('article');
 
       // Начинаем со ссылки первой карточки, чтобы не проходить Tab через шапку и фильтры.
-      act(() => {
-        screen.getByRole('link', {name: 'Paris flat one'}).focus();
-      });
+      focusLink('Paris flat one');
       expect(firstCard).toHaveClass('place-card--active');
 
       await user.tab();
