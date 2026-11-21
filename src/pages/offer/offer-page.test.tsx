@@ -2,7 +2,7 @@ import {screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {Route, Routes} from 'react-router';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {AppRoute} from '../../const';
+import {AppRoute, MAX_REVIEWS} from '../../const';
 import {fullOffers} from '../../mocks/offer';
 import {offers} from '../../mocks/offers';
 import {renderWithRouter} from '../../mocks/render-with-router';
@@ -91,7 +91,7 @@ describe('OfferPage', () => {
     renderOfferPage(offer.id);
 
     const section = screen.getByRole('region', {name: `Reviews · ${String(reviews.length)}`});
-    expect(within(section).getAllByRole('listitem')).toHaveLength(reviews.length);
+    expect(within(section).getAllByRole('listitem')).toHaveLength(Math.min(reviews.length, MAX_REVIEWS));
     expect(within(section).getByRole('link', {name: 'Sign in'})).toHaveAttribute('href', '/login');
     expect(within(section).queryByRole('button', {name: 'Submit'})).not.toBeInTheDocument();
   });
