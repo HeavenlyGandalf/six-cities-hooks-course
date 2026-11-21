@@ -41,13 +41,27 @@ export type SortOption = typeof SORT_OPTIONS[number];
 
 export const DEFAULT_SORT: SortOption = 'Popular';
 
-// Адреса будущих маршрутов. Роутер подключается на этапе 3.
+// Адреса маршрутов. Offer - префикс ссылки на предложение, OfferPattern - шаблон маршрута с :id.
 export const AppRoute = {
   Main: '/',
   Login: '/login',
   Favorites: '/favorites',
   Offer: '/offer',
+  OfferPattern: '/offer/:id',
+  NotFound: '*',
 } as const;
+
+// Статус авторизации: unknown - ещё проверяется, auth - вошёл, no-auth - гость.
+export const AuthStatus = {
+  Unknown: 'unknown',
+  Auth: 'auth',
+  NoAuth: 'no-auth',
+} as const;
+
+export type AuthStatusValue = typeof AuthStatus[keyof typeof AuthStatus];
+
+// Заглушка статуса до этапа 7: сервера ещё нет, пользователь считается гостем.
+export const AUTH_STATUS_STUB: AuthStatusValue = AuthStatus.NoAuth;
 
 export const CURRENCY_SIGN = '€';
 
@@ -126,6 +140,10 @@ export const UiText = {
   Submit: 'Submit',
   NearMapLabel: 'Map of places nearby',
   NearPlacesTitle: 'Other places in the neighbourhood',
+  Loading: 'Loading\u2026',
+  ServerErrorTitle: 'Server is unavailable',
+  ServerErrorText: 'We could not load the data. Check your connection and try again in a minute.',
+  TryAgain: 'Try again',
 } as const;
 
 // Заголовки вкладок (course/TASKS.md, M4): префикс и названия страниц без данных.
