@@ -20,12 +20,21 @@ import {filterByTitle} from '../../utils/offers';
 // Вид хранится и на планшете: при возврате на телефон выбор не сбрасывается.
 function MainPage(): JSX.Element {
   const [activeOfferId, setActiveOfferId] = useState<string | null>(null);
+  // searchText - что набрано в поле, searchQuery - строка, уже применённая к списку после задержки.
+  const [searchText, setSearchText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewModeValue>(ViewMode.List);
   const isPhone = useMediaQuery(PHONE_MEDIA_QUERY);
   const isListShown = !isPhone || viewMode === ViewMode.List;
   const isMapShown = !isPhone || viewMode === ViewMode.Map;
   const activeCity = DEFAULT_CITY;
+
+  // Поле поиска размонтируется вместе со списком и отменяет ожидающий поиск,
+  // поэтому набранный текст применяется сразу: после «List» поле и список совпадают.
+  const handleMapChoose = () => {
+    setSearchQuery(searchText);
+    setViewMode(ViewMode.Map);
+  };
   const cityOffers = offers.filter((offer) => offer.city.name === activeCity);
   // При непустом поиске заголовок считает найденные предложения (FR-2).
   const foundOffers = filterByTitle(cityOffers, searchQuery);
@@ -79,9 +88,7 @@ function MainPage(): JSX.Element {
                 name="view"
                 id="view-map"
                 checked={viewMode === ViewMode.Map}
-                onChange={() => {
-                  setViewMode(ViewMode.Map);
-                }}
+                onChange={handleMapChoose}
               />
               <label className="view-switch__label" htmlFor="view-map">{UiText.ViewMap}</label>
             </div>
@@ -103,7 +110,7 @@ function MainPage(): JSX.Element {
                   {foundOffers.length} {UiText.PlacesToStayIn} {activeCity}
                 </h2>
                 <div className="places__tools">
-                  <SearchField onSearch={setSearchQuery} />
+                  <SearchField value={searchText} onValueChange={setSearchText} onSearch={setSearchQuery} />
                   <div className="sort">
                     <span className="sort__caption" id="sort-caption">{UiText.SortBy}</span>
                     <button
