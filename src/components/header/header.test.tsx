@@ -18,7 +18,8 @@ describe('Header', () => {
 
     expect(screen.getByText('test.user@example.com')).toBeInTheDocument();
     expect(screen.getByLabelText('В избранном: 7')).toHaveTextContent('7');
-    expect(screen.getByRole('link', {name: 'Sign out'})).toBeInTheDocument();
+    expect(screen.getByText('test.user@example.com').closest('a')).toHaveAttribute('href', '/favorites');
+    expect(screen.getByRole('link', {name: 'Sign out'})).toHaveAttribute('href', '/');
     expect(screen.queryByRole('link', {name: 'Sign in'})).not.toBeInTheDocument();
   });
 

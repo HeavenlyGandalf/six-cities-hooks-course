@@ -1,14 +1,33 @@
 import {screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {Route, Routes} from 'react-router';
-import {describe, expect, it} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import {AppRoute} from '../../const';
 import {fullOffers} from '../../mocks/offer';
+import {offers} from '../../mocks/offers';
 import {renderWithRouter} from '../../mocks/render-with-router';
 import {reviews} from '../../mocks/reviews';
 import OfferPage from './offer-page';
 
 const [offer, secondOffer] = fullOffers;
+
+// По умолчанию stubUser - настоящая заглушка (гость); отдельный тест подставляет вошедшего.
+const userState = vi.hoisted(() => ({
+  signedInUser: {
+    name: 'Oliver',
+    avatarUrl: '/img/avatars/user-3.svg',
+    isPro: false,
+    email: 'oliver@example.com',
+    token: 'token',
+  },
+  isSignedIn: false,
+}));
+
+vi.mock('../../mocks/user', () => ({
+  get stubUser() {
+    return userState.isSignedIn ? userState.signedInUser : null;
+  },
+}));
 
 // useParams читает id только внутри маршрута с шаблоном /offer/:id.
 function renderOfferPage(id: string) {
@@ -21,6 +40,10 @@ function renderOfferPage(id: string) {
 }
 
 describe('OfferPage', () => {
+  afterEach(() => {
+    userState.isSignedIn = false;
+  });
+
   it('puts the offer title into the tab title in <head>', () => {
     const {container} = renderOfferPage(offer.id);
 
@@ -108,5 +131,22 @@ describe('OfferPage', () => {
     await user.click(within(near).getByRole('link', {name: secondOffer.title}));
 
     expect(screen.getByRole('heading', {level: 1, name: secondOffer.title})).toBeInTheDocument();
+    expect(document.title).toBe(`Six Cities - ${secondOffer.title}`);
+  });
+
+  it('shows the review form to a signed-in user', () => {
+    userState.isSignedIn = true;
+    renderOfferPage(offer.id);
+
+    const section = screen.getByRole('region', {name: `Reviews · ${String(reviews.length)}`});
+    expect(within(section).getByRole('heading', {level: 3, name: 'Your review'})).toBeInTheDocument();
+    expect(within(section).getByRole('button', {name: 'Submit'})).toBeDisabled();
+    expect(within(section).queryByRole('link', {name: 'Sign in'})).not.toBeInTheDocument();
+  });
+
+  it.each(offers.map((preview) => [preview.title, preview.id]))('has a full offer for the card %s', (title, id) => {
+    renderOfferPage(id);
+
+    expect(screen.getByRole('heading', {level: 1, name: title})).toBeInTheDocument();
   });
 });
