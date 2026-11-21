@@ -1,16 +1,17 @@
-import {render, screen} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import {describe, expect, it} from 'vitest';
+import {renderWithRouter} from '../../mocks/render-with-router';
 import LoginPage from './login-page';
 
 describe('LoginPage', () => {
   it('sets the Login tab title', () => {
-    render(<LoginPage />);
+    renderWithRouter(<LoginPage />);
 
     expect(document.title).toBe('Six Cities - Login');
   });
 
   it('renders a clean sign in form', () => {
-    render(<LoginPage />);
+    renderWithRouter(<LoginPage />);
 
     expect(screen.getByRole('heading', {level: 1, name: 'Sign in'})).toBeInTheDocument();
     expect(screen.getByLabelText('E-mail')).toHaveAttribute('type', 'email');
@@ -24,14 +25,14 @@ describe('LoginPage', () => {
   });
 
   it('shows the guest header with Sign in marked as current', () => {
-    render(<LoginPage />);
+    renderWithRouter(<LoginPage />);
 
     expect(screen.getByRole('link', {name: 'Sign in'})).toHaveAttribute('aria-current', 'page');
     expect(screen.queryByRole('link', {name: 'Sign out'})).not.toBeInTheDocument();
   });
 
   it('links the city to the main page', () => {
-    render(<LoginPage />);
+    renderWithRouter(<LoginPage />);
 
     expect(screen.getByRole('link', {name: 'Explore Paris'})).toHaveAttribute('href', '/');
   });

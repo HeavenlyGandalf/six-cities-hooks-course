@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import {Link} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import {AppRoute, PageTitle, UiText} from '../../const';
@@ -32,7 +33,7 @@ function NotFoundPage(): JSX.Element {
           </h1>
           <p className="not-found__text">{UiText.NotFoundText}</p>
           <p className="not-found__text">{UiText.NotFoundBackText}</p>
-          <a className="button not-found__button" href={AppRoute.Main}>{UiText.BackToMain}</a>
+          <Link className="button not-found__button" to={AppRoute.Main}>{UiText.BackToMain}</Link>
         </section>
       </main>
 

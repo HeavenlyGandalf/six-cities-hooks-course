@@ -1,5 +1,6 @@
-import {render, screen, within} from '@testing-library/react';
+import {screen, within} from '@testing-library/react';
 import {describe, expect, it} from 'vitest';
+import {renderWithRouter} from '../../mocks/render-with-router';
 import {offers} from '../../mocks/offers';
 import FavoritesPage from './favorites-page';
 
@@ -7,13 +8,13 @@ const favoriteOffers = offers.filter((offer) => offer.isFavorite);
 
 describe('FavoritesPage', () => {
   it('shows the favorites count in the tab title', () => {
-    render(<FavoritesPage />);
+    renderWithRouter(<FavoritesPage />);
 
     expect(document.title).toBe(`Six Cities - Favorites (${String(favoriteOffers.length)})`);
   });
 
   it('shows only favorite offers as row cards', () => {
-    render(<FavoritesPage />);
+    renderWithRouter(<FavoritesPage />);
 
     const cards = screen.getAllByRole('article');
     expect(cards).toHaveLength(favoriteOffers.length);
@@ -24,7 +25,7 @@ describe('FavoritesPage', () => {
   });
 
   it('groups offers under a city heading linking to the main page', () => {
-    render(<FavoritesPage />);
+    renderWithRouter(<FavoritesPage />);
 
     const cityName = favoriteOffers[0].city.name;
     const section = screen.getByRole('region', {name: cityName});
@@ -35,7 +36,7 @@ describe('FavoritesPage', () => {
   });
 
   it('shows the favorites count in the header', () => {
-    render(<FavoritesPage />);
+    renderWithRouter(<FavoritesPage />);
 
     expect(screen.getByLabelText(`В избранном: ${String(favoriteOffers.length)}`)).toBeInTheDocument();
   });

@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import {Link} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import OffersList from '../../components/offers-list/offers-list';
@@ -28,10 +29,10 @@ function FavoritesPage(): JSX.Element {
                 <li key={city} className="favorites__group">
                   <section className="favorites__city" aria-labelledby={titleId}>
                     <h2 className="favorites__city-title" id={titleId}>
-                      <a className="favorites__city-link" href={AppRoute.Main}>
+                      <Link className="favorites__city-link" to={AppRoute.Main}>
                         <svg className="favorites__city-icon" aria-hidden="true"><use href="#icon-pin" /></svg>
                         {city}
-                      </a>
+                      </Link>
                     </h2>
                     <OffersList offers={cityOffers} className="favorites__places" variant="row" />
                   </section>

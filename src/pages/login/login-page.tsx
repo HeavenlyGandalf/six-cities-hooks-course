@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import {Link} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import {AppRoute, DEFAULT_CITY, LOGIN_CITY_IMAGE, PageTitle, UiText} from '../../const';
@@ -56,7 +57,7 @@ function LoginPage(): JSX.Element {
             </form>
           </section>
 
-          <a className="login__city" href={AppRoute.Main}>
+          <Link className="login__city" to={AppRoute.Main}>
             <img
               className="login__city-image"
               src={LOGIN_CITY_IMAGE}
@@ -70,7 +71,7 @@ function LoginPage(): JSX.Element {
               {' '}
               <span className="login__city-name">{DEFAULT_CITY}</span>
             </span>
-          </a>
+          </Link>
         </div>
       </main>
 

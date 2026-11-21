@@ -1,6 +1,8 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
+import {createBrowserRouter} from 'react-router';
 import App from './components/app/app';
+import {createAppRoutes} from './components/app/router';
 import {ROOT_ELEMENT_ID} from './const';
 import './styles/main.css';
 import './styles/pages/main.css';
@@ -17,8 +19,10 @@ if (!rootElement) {
   throw new Error(`Element #${ROOT_ELEMENT_ID} not found`);
 }
 
+const router = createBrowserRouter(createAppRoutes());
+
 createRoot(rootElement).render(
   <StrictMode>
-    <App />
+    <App router={router} />
   </StrictMode>,
 );

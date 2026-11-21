@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import {Link} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import OffersList from '../../components/offers-list/offers-list';
@@ -28,13 +29,13 @@ function MainPage(): JSX.Element {
                 const isActive = city === activeCity;
                 return (
                   <li key={city}>
-                    <a
+                    <Link
                       className={`cities__link${isActive ? ' cities__link--active' : ''}`}
-                      href={AppRoute.Main}
+                      to={AppRoute.Main}
                       aria-current={isActive ? 'page' : undefined}
                     >
                       {city}
-                    </a>
+                    </Link>
                   </li>
                 );
               })}
