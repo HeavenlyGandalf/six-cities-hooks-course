@@ -1,15 +1,17 @@
 import type {JSX} from 'react';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
-import {AppRoute, UiText} from '../../const';
+import {AppRoute, PageTitle, UiText} from '../../const';
 import {offers} from '../../mocks/offers';
 import {authInfo} from '../../mocks/user';
+import {formatPageTitle} from '../../utils/format';
 
 function NotFoundPage(): JSX.Element {
   const favoriteCount = offers.filter((offer) => offer.isFavorite).length;
 
   return (
     <div className="page">
+      <title>{formatPageTitle(PageTitle.NotFound)}</title>
       <Header user={authInfo} favoriteCount={favoriteCount} />
 
       <main className="page__main">

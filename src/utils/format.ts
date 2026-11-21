@@ -1,3 +1,5 @@
+import {PageTitle} from '../const';
+
 // Формат даты отзыва: «April 2019». Дата берётся в UTC, чтобы не зависеть от пояса браузера.
 const reviewDateFormat = new Intl.DateTimeFormat('en-US', {
   month: 'long',
@@ -24,4 +26,9 @@ export function formatReviewDate(isoDate: string): string {
 // Значение атрибута datetime у <time>: YYYY-MM-DD в UTC.
 export function toDateAttribute(isoDate: string): string {
   return new Date(isoDate).toISOString().slice(0, DATE_ATTRIBUTE_LENGTH);
+}
+
+// Текст <title> страницы: одна строка, а не несколько текстовых узлов, иначе React предупреждает.
+export function formatPageTitle(part: string): string {
+  return `${PageTitle.Prefix}${part}`;
 }

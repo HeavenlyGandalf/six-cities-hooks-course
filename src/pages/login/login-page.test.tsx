@@ -3,6 +3,12 @@ import {describe, expect, it} from 'vitest';
 import LoginPage from './login-page';
 
 describe('LoginPage', () => {
+  it('sets the Login tab title', () => {
+    render(<LoginPage />);
+
+    expect(document.title).toBe('Six Cities - Login');
+  });
+
   it('renders a clean sign in form', () => {
     render(<LoginPage />);
 

@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {capitalize, formatReviewDate, pluralize, toDateAttribute} from './format';
+import {capitalize, formatPageTitle, formatReviewDate, pluralize, toDateAttribute} from './format';
 
 describe('pluralize', () => {
   it.each([
@@ -47,5 +47,11 @@ describe('toDateAttribute', () => {
     expect(toDateAttribute('2019-04-30T23:30:00Z')).toBe('2019-04-30');
     expect(toDateAttribute('2019-04-24T14:13:56.569Z')).toBe('2019-04-24');
     expect(toDateAttribute('2019-05-01T00:30:00Z')).toBe('2019-05-01');
+  });
+});
+
+describe('formatPageTitle', () => {
+  it('adds the Six Cities prefix', () => {
+    expect(formatPageTitle('Login')).toBe('Six Cities - Login');
   });
 });

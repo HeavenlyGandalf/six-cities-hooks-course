@@ -3,6 +3,12 @@ import {describe, expect, it} from 'vitest';
 import NotFoundPage from './not-found-page';
 
 describe('NotFoundPage', () => {
+  it('sets the 404 tab title', () => {
+    render(<NotFoundPage />);
+
+    expect(document.title).toBe('Six Cities - 404');
+  });
+
   it('shows 404 Not Found and a link back to the main page', () => {
     const {container} = render(<NotFoundPage />);
 

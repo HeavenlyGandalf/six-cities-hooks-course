@@ -2,9 +2,10 @@ import type {JSX} from 'react';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import OffersList from '../../components/offers-list/offers-list';
-import {AppRoute, UiText} from '../../const';
+import {AppRoute, PageTitle, UiText} from '../../const';
 import {offers} from '../../mocks/offers';
 import {authInfo} from '../../mocks/user';
+import {formatPageTitle} from '../../utils/format';
 import {groupByCity} from '../../utils/offers';
 
 // Пустое состояние (favorites-empty.html) появится в истории 8.2.
@@ -14,6 +15,7 @@ function FavoritesPage(): JSX.Element {
 
   return (
     <div className="page">
+      <title>{formatPageTitle(`${PageTitle.Favorites} (${String(favoriteOffers.length)})`)}</title>
       <Header user={authInfo} favoriteCount={favoriteOffers.length} />
 
       <main className="page__main">

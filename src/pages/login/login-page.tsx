@@ -1,7 +1,8 @@
 import type {JSX} from 'react';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
-import {AppRoute, DEFAULT_CITY, LOGIN_CITY_IMAGE, UiText} from '../../const';
+import {AppRoute, DEFAULT_CITY, LOGIN_CITY_IMAGE, PageTitle, UiText} from '../../const';
+import {formatPageTitle} from '../../utils/format';
 
 // Размеры фото города из вёрстки (course/markup/login.html).
 const CityImageSize = {
@@ -14,6 +15,7 @@ const CityImageSize = {
 function LoginPage(): JSX.Element {
   return (
     <div className="page">
+      <title>{formatPageTitle(PageTitle.Login)}</title>
       <Header user={null} favoriteCount={0} isSignInCurrent />
 
       <main className="page__main">
