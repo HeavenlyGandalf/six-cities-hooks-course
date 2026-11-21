@@ -22,14 +22,16 @@ function Header({user, favoriteCount, isSignInCurrent = false}: HeaderProps): JS
         <nav className="user-nav" aria-label={UiText.UserNavLabel}>
           {user ? (
             <>
-              <Link className="user-nav__link" to={AppRoute.Favorites}>
+              {/* С планшета email сокращается многоточием (main.css), на телефоне скрыт; title показывает адрес целиком (ОВ-6). */}
+              <Link className="user-nav__link" to={AppRoute.Favorites} title={user.email}>
                 <img className="user-nav__avatar" src={user.avatarUrl} width={AVATAR_SIZE} height={AVATAR_SIZE} alt="" />
                 <span className="user-nav__email">{user.email}</span>
                 <span className="user-nav__count" aria-label={`${UiText.FavoriteCountLabel} ${String(favoriteCount)}`}>
                   {favoriteCount}
                 </span>
               </Link>
-              <Link className="user-nav__link user-nav__link--signout" to={AppRoute.Main}>
+              {/* На телефоне подпись скрыта (display: none), иконка aria-hidden: имя ссылке даёт aria-label. */}
+              <Link className="user-nav__link user-nav__link--signout" to={AppRoute.Main} aria-label={UiText.SignOut}>
                 <span className="user-nav__label">{UiText.SignOut}</span>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                   <path d="M8 4H4v12h4M12 6l4 4-4 4M16 10H8" strokeLinecap="round" strokeLinejoin="round" />

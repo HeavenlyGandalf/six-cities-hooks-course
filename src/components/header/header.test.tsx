@@ -23,6 +23,21 @@ describe('Header', () => {
     expect(screen.queryByRole('link', {name: 'Sign in'})).not.toBeInTheDocument();
   });
 
+  it('keeps the full email in the link title, because the visible email can be cut with an ellipsis', () => {
+    renderWithRouter(<Header user={user} favoriteCount={0} />);
+
+    expect(screen.getByText('test.user@example.com').closest('a')).toHaveAttribute('title', 'test.user@example.com');
+  });
+
+  it('keeps the Sign out name when the visible label is hidden on a phone', () => {
+    renderWithRouter(<Header user={user} favoriteCount={0} />);
+    // На телефоне main.css скрывает подпись через display: none; jsdom стили вёрстки не грузит, поэтому скрываем вручную.
+    const label = screen.getByText('Sign out');
+    label.style.display = 'none';
+
+    expect(screen.getByRole('link', {name: 'Sign out'})).toHaveAttribute('href', '/');
+  });
+
   it('shows a Sign in link to /login for a guest', () => {
     renderWithRouter(<Header user={null} favoriteCount={0} />);
 
