@@ -231,6 +231,8 @@ describe('ReviewForm', () => {
 
       expect(form.submit).toHaveAccessibleName('Sending...');
       expect(form.submit).toHaveAttribute('aria-busy', 'true');
+      expect(form.submit).toBeDisabled();
+      expect(form.submit.querySelector('.spinner')).toBeInTheDocument();
       expect(form.textarea).toBeDisabled();
       expect(screen.getByLabelText('perfect')).toBeDisabled();
       expect(form.submit.closest('form')).toHaveAttribute('aria-busy', 'true');
@@ -255,6 +257,7 @@ describe('ReviewForm', () => {
       await form.user.click(form.submit);
 
       expect(await screen.findByRole('alert')).toHaveTextContent('Could not send the review. Try again');
+      expect(form.submit).toHaveAccessibleDescription('Could not send the review. Try again');
       expect(form.textarea).toHaveValue(textOf(60));
       expect(screen.getByLabelText('good')).toBeChecked();
       expect(form.textarea).toBeEnabled();

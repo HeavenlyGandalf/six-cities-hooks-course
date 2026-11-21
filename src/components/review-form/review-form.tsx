@@ -7,6 +7,7 @@ const TEXTAREA_ROWS = 5;
 
 const HINT_ID = 'review-hint';
 const ERROR_ID = 'review-error';
+const SUBMIT_ERROR_ID = 'review-submit-error';
 
 interface ReviewFormProps {
   offerId: string;
@@ -86,12 +87,13 @@ function ReviewForm({offerId}: ReviewFormProps): JSX.Element {
             type="submit"
             disabled={!isValid}
             aria-busy={isSubmitting || undefined}
+            aria-describedby={isError ? SUBMIT_ERROR_ID : undefined}
           >
             {isSubmitting && <span className="spinner spinner--small" aria-hidden="true" />}
             {isSubmitting ? UiText.Sending : UiText.Submit}
           </button>
         </div>
-        {isError && <p className="form-error" role="alert">{UiText.ReviewSubmitError}</p>}
+        {isError && <p className="form-error" id={SUBMIT_ERROR_ID} role="alert">{UiText.ReviewSubmitError}</p>}
       </fieldset>
     </form>
   );
