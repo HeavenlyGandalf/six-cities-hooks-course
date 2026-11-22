@@ -205,10 +205,22 @@ describe('MainPage', () => {
       await user.hover(firstCard);
       expect(firstCard).toHaveClass('place-card--active');
 
+      // fireEvent, а не user.click: user.click сам уводит курсор с карточки (mouseleave) и спрятал бы ошибку.
       fireEvent.click(screen.getByRole('radio', {name: UiText.ViewMap}));
       fireEvent.click(screen.getByRole('radio', {name: UiText.ViewList}));
 
       expect(document.querySelectorAll('.place-card--active')).toHaveLength(0);
+    });
+
+    it('shows the switch with List checked and mounts only the list after narrowing a desktop to a phone', () => {
+      renderWithRouter(<MainPage />);
+
+      resizeTo(TestWidth.Phone);
+
+      expect(getSwitch()).toBeInTheDocument();
+      expect(screen.getByRole('radio', {name: UiText.ViewList})).toBeChecked();
+      expect(getList()).toBeInTheDocument();
+      expect(getMap()).not.toBeInTheDocument();
     });
 
     it('shows both list and map without the switch on a desktop', () => {
