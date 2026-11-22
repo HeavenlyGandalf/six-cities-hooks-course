@@ -4,7 +4,8 @@ import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import OffersList from '../../components/offers-list/offers-list';
 import SearchField from '../../components/search-field/search-field';
-import {AppRoute, CITIES, DEFAULT_CITY, DEFAULT_SORT, SORT_OPTIONS, UiText} from '../../const';
+import {useMediaQuery} from '../../hooks/use-media-query/use-media-query';
+import {AppRoute, CITIES, DEFAULT_CITY, DEFAULT_SORT, PHONE_MEDIA_QUERY, SORT_OPTIONS, UiText, ViewMode, type ViewModeValue} from '../../const';
 import {offers} from '../../mocks/offers';
 import {stubUser} from '../../mocks/user';
 import {formatPageTitle} from '../../utils/format';
@@ -14,10 +15,33 @@ import {filterByTitle} from '../../utils/offers';
 // выбор города и сортировка появятся вместе со store.
 // Активная карточка - локальное состояние страницы, позже её получит карта (H5).
 // Строка поиска приходит из SearchField уже с задержкой; на этапе 6 она переедет в адрес (H4).
+// На телефоне переключатель List/Map монтирует только выбранный вид (H12); id радио остались,
+// чтобы стили вёрстки (:has(#view-map:checked) в pages/main.css) работали как раньше.
+// Вид хранится и на планшете: при возврате на телефон выбор не сбрасывается.
 function MainPage(): JSX.Element {
   const [activeOfferId, setActiveOfferId] = useState<string | null>(null);
+  // searchText - что набрано в поле, searchQuery - строка, уже применённая к списку после задержки.
+  const [searchText, setSearchText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<ViewModeValue>(ViewMode.List);
+  const isPhone = useMediaQuery(PHONE_MEDIA_QUERY);
+  const isListShown = !isPhone || viewMode === ViewMode.List;
+  const isMapShown = !isPhone || viewMode === ViewMode.Map;
   const activeCity = DEFAULT_CITY;
+
+  // Список пропадает и по клику «Map», и при сужении до телефона с выбранной картой.
+  // Поле поиска размонтируется вместе со списком и отменяет ожидающий поиск,
+  // поэтому набранный текст применяется сразу: после «List» поле и список совпадают.
+  // Активная карточка сбрасывается: курсор больше не над списком, карта не должна подсвечивать маркер.
+  // Состояние правится прямо в рендере при смене isListShown, без эффекта: React перерисует сразу.
+  const [wasListShown, setWasListShown] = useState(isListShown);
+  if (wasListShown !== isListShown) {
+    setWasListShown(isListShown);
+    if (!isListShown) {
+      setSearchQuery(searchText);
+      setActiveOfferId(null);
+    }
+  }
   const cityOffers = offers.filter((offer) => offer.city.name === activeCity);
   // При непустом поиске заголовок считает найденные предложения (FR-2).
   const foundOffers = filterByTitle(cityOffers, searchQuery);
@@ -52,61 +76,84 @@ function MainPage(): JSX.Element {
         </nav>
 
         <div className="container places-layout">
-          {/* Переключатель List/Map работает на CSS (:has в pages/main.css), поэтому радиокнопки неуправляемые. */}
-          <div className="view-switch" role="radiogroup" aria-label={UiText.ViewLabel}>
-            <input className="view-switch__input" type="radio" name="view" id="view-list" defaultChecked />
-            <label className="view-switch__label" htmlFor="view-list">{UiText.ViewList}</label>
-            <input className="view-switch__input" type="radio" name="view" id="view-map" />
-            <label className="view-switch__label" htmlFor="view-map">{UiText.ViewMap}</label>
-          </div>
+          {isPhone && (
+            <div className="view-switch" role="radiogroup" aria-label={UiText.ViewLabel}>
+              <input
+                className="view-switch__input"
+                type="radio"
+                name="view"
+                id="view-list"
+                checked={viewMode === ViewMode.List}
+                onChange={() => {
+                  setViewMode(ViewMode.List);
+                }}
+              />
+              <label className="view-switch__label" htmlFor="view-list">{UiText.ViewList}</label>
+              <input
+                className="view-switch__input"
+                type="radio"
+                name="view"
+                id="view-map"
+                checked={viewMode === ViewMode.Map}
+                onChange={() => {
+                  setViewMode(ViewMode.Map);
+                }}
+              />
+              <label className="view-switch__label" htmlFor="view-map">{UiText.ViewMap}</label>
+            </div>
+          )}
 
           {/* Заглушка карты без маркеров: Яндекс Карты подключаются в H5. */}
-          <section className="places-layout__map" aria-label={UiText.MapLabel}>
-            <div className="map">
-              <span className="map__note">{UiText.MapNote}</span>
-            </div>
-          </section>
+          {isMapShown && (
+            <section className="places-layout__map" aria-label={UiText.MapLabel}>
+              <div className="map">
+                <span className="map__note">{UiText.MapNote}</span>
+              </div>
+            </section>
+          )}
 
-          <section className="places places-layout__list">
-            <div className="places__head">
-              <h2 className="places__title">
-                {foundOffers.length} {UiText.PlacesToStayIn} {activeCity}
-              </h2>
-              <div className="places__tools">
-                <SearchField onSearch={setSearchQuery} />
-                <div className="sort">
-                  <span className="sort__caption" id="sort-caption">{UiText.SortBy}</span>
-                  <button
-                    className="sort__current"
-                    type="button"
-                    aria-haspopup="listbox"
-                    aria-expanded="false"
-                    aria-labelledby="sort-caption sort-current"
-                  >
-                    <span id="sort-current">{DEFAULT_SORT}</span>
-                    <svg className="sort__arrow" aria-hidden="true"><use href="#icon-arrow" /></svg>
-                  </button>
-                  <ul className="sort__list" role="listbox" aria-labelledby="sort-caption">
-                    {SORT_OPTIONS.map((option) => {
-                      const isActive = option === DEFAULT_SORT;
-                      return (
-                        <li
-                          key={option}
-                          className={`sort__option${isActive ? ' sort__option--active' : ''}`}
-                          role="option"
-                          aria-selected={isActive}
-                        >
-                          {option}
-                        </li>
-                      );
-                    })}
-                  </ul>
+          {isListShown && (
+            <section className="places places-layout__list">
+              <div className="places__head">
+                <h2 className="places__title">
+                  {foundOffers.length} {UiText.PlacesToStayIn} {activeCity}
+                </h2>
+                <div className="places__tools">
+                  <SearchField value={searchText} onValueChange={setSearchText} onSearch={setSearchQuery} />
+                  <div className="sort">
+                    <span className="sort__caption" id="sort-caption">{UiText.SortBy}</span>
+                    <button
+                      className="sort__current"
+                      type="button"
+                      aria-haspopup="listbox"
+                      aria-expanded="false"
+                      aria-labelledby="sort-caption sort-current"
+                    >
+                      <span id="sort-current">{DEFAULT_SORT}</span>
+                      <svg className="sort__arrow" aria-hidden="true"><use href="#icon-arrow" /></svg>
+                    </button>
+                    <ul className="sort__list" role="listbox" aria-labelledby="sort-caption">
+                      {SORT_OPTIONS.map((option) => {
+                        const isActive = option === DEFAULT_SORT;
+                        return (
+                          <li
+                            key={option}
+                            className={`sort__option${isActive ? ' sort__option--active' : ''}`}
+                            role="option"
+                            aria-selected={isActive}
+                          >
+                            {option}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <OffersList offers={foundOffers} activeOfferId={activeOfferId} onCardHover={setActiveOfferId} />
-          </section>
+              <OffersList offers={foundOffers} activeOfferId={activeOfferId} onCardHover={setActiveOfferId} />
+            </section>
+          )}
         </div>
       </main>
 

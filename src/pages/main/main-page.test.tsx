@@ -1,6 +1,8 @@
 import {act, fireEvent, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
+import {UiText} from '../../const';
+import {installMatchMedia, setWidth, TestWidth} from '../../mocks/match-media';
 import {renderWithRouter} from '../../mocks/render-with-router';
 import type {OfferPreview} from '../../types/offer';
 import {DEBOUNCE_DELAY_MS} from '../../variant';
@@ -114,6 +116,196 @@ describe('MainPage', () => {
 
       await user.tab();
       expect(getActiveCards()).toHaveLength(0);
+    });
+  });
+
+  describe('list / map switch', () => {
+    function getMap() {
+      return document.querySelector('.places-layout__map');
+    }
+
+    function getList() {
+      return document.querySelector('.places-layout__list');
+    }
+
+    function getSwitch() {
+      return screen.queryByRole('radiogroup', {name: UiText.ViewLabel});
+    }
+
+    function resizeTo(width: number) {
+      act(() => {
+        setWidth(width);
+      });
+    }
+
+    function renderOnPhone() {
+      installMatchMedia(TestWidth.Phone);
+      renderWithRouter(<MainPage />);
+    }
+
+    it('shows the switch and mounts only the list by default on a phone', () => {
+      renderOnPhone();
+
+      expect(getSwitch()).toBeInTheDocument();
+      expect(screen.getByRole('radio', {name: UiText.ViewList})).toBeChecked();
+      expect(getList()).toBeInTheDocument();
+      expect(getMap()).not.toBeInTheDocument();
+    });
+
+    it('mounts only the map after choosing Map on a phone', async () => {
+      const user = userEvent.setup();
+      renderOnPhone();
+
+      await user.click(screen.getByRole('radio', {name: UiText.ViewMap}));
+
+      expect(screen.getByRole('radio', {name: UiText.ViewMap})).toBeChecked();
+      expect(getMap()).toBeInTheDocument();
+      expect(getList()).not.toBeInTheDocument();
+    });
+
+    it('hides the switch and shows both list and map after widening a phone to a tablet', () => {
+      renderOnPhone();
+
+      resizeTo(TestWidth.Tablet);
+
+      expect(getSwitch()).not.toBeInTheDocument();
+      expect(getList()).toBeInTheDocument();
+      expect(getMap()).toBeInTheDocument();
+    });
+
+    it('keeps Map chosen after widening to a tablet and narrowing back to a phone', async () => {
+      const user = userEvent.setup();
+      renderOnPhone();
+      await user.click(screen.getByRole('radio', {name: UiText.ViewMap}));
+
+      resizeTo(TestWidth.Tablet);
+      resizeTo(TestWidth.Phone);
+
+      expect(screen.getByRole('radio', {name: UiText.ViewMap})).toBeChecked();
+      expect(getMap()).toBeInTheDocument();
+      expect(getList()).not.toBeInTheDocument();
+    });
+
+    it('mounts the list again and unmounts the map after Map and back to List on a phone', async () => {
+      const user = userEvent.setup();
+      renderOnPhone();
+
+      await user.click(screen.getByRole('radio', {name: UiText.ViewMap}));
+      await user.click(screen.getByRole('radio', {name: UiText.ViewList}));
+
+      expect(screen.getByRole('radio', {name: UiText.ViewList})).toBeChecked();
+      expect(getList()).toBeInTheDocument();
+      expect(getMap()).not.toBeInTheDocument();
+    });
+
+    it('resets the active card when Map is chosen on a phone', async () => {
+      const user = userEvent.setup();
+      renderOnPhone();
+      const [firstCard] = screen.getAllByRole('article');
+      await user.hover(firstCard);
+      expect(firstCard).toHaveClass('place-card--active');
+
+      // fireEvent, а не user.click: user.click сам уводит курсор с карточки (mouseleave) и спрятал бы ошибку.
+      fireEvent.click(screen.getByRole('radio', {name: UiText.ViewMap}));
+      fireEvent.click(screen.getByRole('radio', {name: UiText.ViewList}));
+
+      expect(document.querySelectorAll('.place-card--active')).toHaveLength(0);
+    });
+
+    it('shows the switch with List checked and mounts only the list after narrowing a desktop to a phone', () => {
+      renderWithRouter(<MainPage />);
+
+      resizeTo(TestWidth.Phone);
+
+      expect(getSwitch()).toBeInTheDocument();
+      expect(screen.getByRole('radio', {name: UiText.ViewList})).toBeChecked();
+      expect(getList()).toBeInTheDocument();
+      expect(getMap()).not.toBeInTheDocument();
+    });
+
+    it('shows both list and map without the switch on a desktop', () => {
+      renderWithRouter(<MainPage />);
+
+      expect(getSwitch()).not.toBeInTheDocument();
+      expect(getList()).toBeInTheDocument();
+      expect(getMap()).toBeInTheDocument();
+    });
+  });
+
+  describe('search and view switch on a phone', () => {
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    function getSearchField() {
+      return screen.getByRole('searchbox', {name: UiText.SearchByTitle});
+    }
+
+    function chooseView(name: string) {
+      fireEvent.click(screen.getByRole('radio', {name}));
+    }
+
+    function waitForDelay() {
+      act(() => {
+        vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+      });
+    }
+
+    function renderOnPhoneWithFakeTimers() {
+      vi.useFakeTimers();
+      installMatchMedia(TestWidth.Phone);
+      renderWithRouter(<MainPage />);
+    }
+
+    function resizeWithinDelay(width: number) {
+      act(() => {
+        setWidth(width);
+      });
+    }
+
+    it('keeps the search text and resets the active card after narrowing from a tablet with Map chosen', () => {
+      renderOnPhoneWithFakeTimers();
+      chooseView(UiText.ViewMap);
+      resizeWithinDelay(TestWidth.Tablet);
+      const [firstCard] = screen.getAllByRole('article');
+      fireEvent.mouseEnter(firstCard);
+      expect(firstCard).toHaveClass('place-card--active');
+      fireEvent.change(getSearchField(), {target: {value: 'one'}});
+
+      resizeWithinDelay(TestWidth.Phone);
+      chooseView(UiText.ViewList);
+      waitForDelay();
+
+      expect(getSearchField()).toHaveValue('one');
+      expect(screen.getAllByRole('article')).toHaveLength(1);
+      expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('1 places to stay in Paris');
+      expect(document.querySelectorAll('.place-card--active')).toHaveLength(0);
+    });
+
+    it('keeps the applied search text in the field and the list after Map and back to List', () => {
+      renderOnPhoneWithFakeTimers();
+      fireEvent.change(getSearchField(), {target: {value: 'one'}});
+      waitForDelay();
+
+      chooseView(UiText.ViewMap);
+      chooseView(UiText.ViewList);
+
+      expect(getSearchField()).toHaveValue('one');
+      expect(screen.getAllByRole('article')).toHaveLength(1);
+      expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('1 places to stay in Paris');
+    });
+
+    it('applies the search text still waiting for the delay when Map is chosen', () => {
+      renderOnPhoneWithFakeTimers();
+      fireEvent.change(getSearchField(), {target: {value: 'one'}});
+
+      chooseView(UiText.ViewMap);
+      chooseView(UiText.ViewList);
+      waitForDelay();
+
+      expect(getSearchField()).toHaveValue('one');
+      expect(screen.getAllByRole('article')).toHaveLength(1);
+      expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('1 places to stay in Paris');
     });
   });
 

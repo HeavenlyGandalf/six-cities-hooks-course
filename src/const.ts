@@ -9,6 +9,17 @@ export const BREAKPOINTS = {
   PHONE_WIDE_MIN: 560,
 } as const;
 
+// Медиазапрос телефона для useMediaQuery: та же граница, что в @media (max-width: 767px).
+export const PHONE_MEDIA_QUERY = `(max-width: ${String(BREAKPOINTS.PHONE_MAX)}px)`;
+
+// Вид главной на телефоне: список предложений или карта (H12).
+export const ViewMode = {
+  List: 'list',
+  Map: 'map',
+} as const;
+
+export type ViewModeValue = typeof ViewMode[keyof typeof ViewMode];
+
 // Рейтинг звёздами: целое число звёзд из Max, по PercentPerStar процентов ширины на звезду.
 export const Rating = {
   Max: 5,

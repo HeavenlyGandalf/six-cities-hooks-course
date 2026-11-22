@@ -1,10 +1,27 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
+import {useState, type JSX} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {DEBOUNCE_DELAY_MS} from '../../variant';
 import SearchField from './search-field';
 
 function getInput(): HTMLElement {
   return screen.getByRole('searchbox', {name: 'Search by title'});
+}
+
+interface ControlledSearchFieldProps {
+  onSearch: (query: string) => void;
+  onValueChange?: (value: string) => void;
+}
+
+// Поле управляемое: набранный текст хранит родитель, как MainPage.
+function ControlledSearchField({onSearch, onValueChange}: ControlledSearchFieldProps): JSX.Element {
+  const [value, setValue] = useState('');
+  const handleValueChange = (nextValue: string) => {
+    setValue(nextValue);
+    onValueChange?.(nextValue);
+  };
+
+  return <SearchField value={value} onValueChange={handleValueChange} onSearch={onSearch} />;
 }
 
 describe('SearchField', () => {
@@ -17,16 +34,31 @@ describe('SearchField', () => {
   });
 
   it('shows what is typed right away', () => {
-    render(<SearchField onSearch={vi.fn()} />);
+    render(<ControlledSearchField onSearch={vi.fn()} />);
 
     fireEvent.change(getInput(), {target: {value: 'house'}});
 
     expect(getInput()).toHaveValue('house');
   });
 
+  it('shows the value passed by the parent', () => {
+    render(<SearchField value="canal" onValueChange={vi.fn()} onSearch={vi.fn()} />);
+
+    expect(getInput()).toHaveValue('canal');
+  });
+
+  it('reports typed text to the parent right away', () => {
+    const onValueChange = vi.fn();
+    render(<ControlledSearchField onSearch={vi.fn()} onValueChange={onValueChange} />);
+
+    fireEvent.change(getInput(), {target: {value: 'house'}});
+
+    expect(onValueChange).toHaveBeenCalledWith('house');
+  });
+
   it('reports the query only after the delay since the last input', () => {
     const onSearch = vi.fn();
-    render(<SearchField onSearch={onSearch} />);
+    render(<ControlledSearchField onSearch={onSearch} />);
 
     fireEvent.change(getInput(), {target: {value: 'ho'}});
     act(() => {
@@ -49,7 +81,7 @@ describe('SearchField', () => {
 
   it('reports the query right away on Enter', () => {
     const onSearch = vi.fn();
-    render(<SearchField onSearch={onSearch} />);
+    render(<ControlledSearchField onSearch={onSearch} />);
 
     fireEvent.change(getInput(), {target: {value: 'house'}});
     fireEvent.keyDown(getInput(), {key: 'Enter'});
@@ -66,7 +98,7 @@ describe('SearchField', () => {
 
   it('cancels the pending query when the field is cleared', () => {
     const onSearch = vi.fn();
-    render(<SearchField onSearch={onSearch} />);
+    render(<ControlledSearchField onSearch={onSearch} />);
 
     fireEvent.change(getInput(), {target: {value: 'house'}});
     fireEvent.change(getInput(), {target: {value: ''}});

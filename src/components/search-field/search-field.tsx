@@ -1,25 +1,28 @@
-import {useState, type ChangeEvent, type JSX, type KeyboardEvent} from 'react';
+import {type ChangeEvent, type JSX, type KeyboardEvent} from 'react';
 import {UiText} from '../../const';
 import {useDebouncedCallback} from '../../hooks/use-debounced-callback/use-debounced-callback';
 import {DEBOUNCE_DELAY_MS} from '../../variant';
 
 interface SearchFieldProps {
+  // Набранный текст. Хранится снаружи, чтобы пережить размонтирование поля (H12, вид «Map» на телефоне).
+  value: string;
+  // Получает набранный текст сразу при вводе.
+  onValueChange: (value: string) => void;
   // Получает строку поиска через DEBOUNCE_DELAY_MS после последнего ввода.
   onSearch: (query: string) => void;
 }
 
 const ENTER_KEY = 'Enter';
 
-// Поле хранит то, что набрано, а наружу отдаёт строку с задержкой.
+// Поле показывает набранный текст из value, а строку поиска отдаёт с задержкой.
 // Enter применяет поиск сразу. Пустое поле (крестик type="search", Escape, стёртый текст)
 // отменяет ожидающий поиск и сразу сбрасывает фильтр.
-function SearchField({onSearch}: SearchFieldProps): JSX.Element {
-  const [value, setValue] = useState('');
+function SearchField({value, onValueChange, onSearch}: SearchFieldProps): JSX.Element {
   const debouncedSearch = useDebouncedCallback(onSearch, DEBOUNCE_DELAY_MS);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const nextValue = event.target.value;
-    setValue(nextValue);
+    onValueChange(nextValue);
 
     if (nextValue === '') {
       debouncedSearch.cancel();
