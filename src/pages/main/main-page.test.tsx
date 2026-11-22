@@ -245,6 +245,31 @@ describe('MainPage', () => {
       renderWithRouter(<MainPage />);
     }
 
+    function resizeWithinDelay(width: number) {
+      act(() => {
+        setWidth(width);
+      });
+    }
+
+    it('keeps the search text and resets the active card after narrowing from a tablet with Map chosen', () => {
+      renderOnPhoneWithFakeTimers();
+      chooseView(UiText.ViewMap);
+      resizeWithinDelay(TestWidth.Tablet);
+      const [firstCard] = screen.getAllByRole('article');
+      fireEvent.mouseEnter(firstCard);
+      expect(firstCard).toHaveClass('place-card--active');
+      fireEvent.change(getSearchField(), {target: {value: 'one'}});
+
+      resizeWithinDelay(TestWidth.Phone);
+      chooseView(UiText.ViewList);
+      waitForDelay();
+
+      expect(getSearchField()).toHaveValue('one');
+      expect(screen.getAllByRole('article')).toHaveLength(1);
+      expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('1 places to stay in Paris');
+      expect(document.querySelectorAll('.place-card--active')).toHaveLength(0);
+    });
+
     it('keeps the applied search text in the field and the list after Map and back to List', () => {
       renderOnPhoneWithFakeTimers();
       fireEvent.change(getSearchField(), {target: {value: 'one'}});
