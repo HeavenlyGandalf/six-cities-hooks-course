@@ -29,14 +29,19 @@ function MainPage(): JSX.Element {
   const isMapShown = !isPhone || viewMode === ViewMode.Map;
   const activeCity = DEFAULT_CITY;
 
+  // Список пропадает и по клику «Map», и при сужении до телефона с выбранной картой.
   // Поле поиска размонтируется вместе со списком и отменяет ожидающий поиск,
   // поэтому набранный текст применяется сразу: после «List» поле и список совпадают.
   // Активная карточка сбрасывается: курсор больше не над списком, карта не должна подсвечивать маркер.
-  const handleMapChoose = () => {
-    setSearchQuery(searchText);
-    setActiveOfferId(null);
-    setViewMode(ViewMode.Map);
-  };
+  // Состояние правится прямо в рендере при смене isListShown, без эффекта: React перерисует сразу.
+  const [wasListShown, setWasListShown] = useState(isListShown);
+  if (wasListShown !== isListShown) {
+    setWasListShown(isListShown);
+    if (!isListShown) {
+      setSearchQuery(searchText);
+      setActiveOfferId(null);
+    }
+  }
   const cityOffers = offers.filter((offer) => offer.city.name === activeCity);
   // При непустом поиске заголовок считает найденные предложения (FR-2).
   const foundOffers = filterByTitle(cityOffers, searchQuery);
@@ -90,7 +95,9 @@ function MainPage(): JSX.Element {
                 name="view"
                 id="view-map"
                 checked={viewMode === ViewMode.Map}
-                onChange={handleMapChoose}
+                onChange={() => {
+                  setViewMode(ViewMode.Map);
+                }}
               />
               <label className="view-switch__label" htmlFor="view-map">{UiText.ViewMap}</label>
             </div>
