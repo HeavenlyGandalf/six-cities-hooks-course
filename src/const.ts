@@ -1,3 +1,6 @@
+export const YANDEX_MAPS_URL = 'https://api-maps.yandex.ru/v3/';
+export const YANDEX_MAPS_LANG = 'en_US';
+
 export const ROOT_ELEMENT_ID = 'root';
 
 // Ширины из @media вёрстки (course/markup/css), px. Сверяются тестом src/styles/breakpoints.test.ts.
@@ -117,6 +120,7 @@ export const UiText = {
   ViewList: 'List',
   ViewMap: 'Map',
   MapLabel: 'Map',
+  MapUnavailable: 'Map is unavailable',
   MapNote: 'Здесь - Яндекс Карты',
   PlacesToStayIn: 'places to stay in',
   SortBy: 'Sort by',
