@@ -18,15 +18,19 @@ describe('loadYandexMaps', () => {
   });
 
   afterEach(() => {
-    document.head.querySelectorAll(selector).forEach((script) => script.remove());
+    document.head.querySelectorAll(selector).forEach((script) => {
+      script.remove();
+    });
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
   });
 
   it('shares the script and waits for API readiness', async () => {
     const {loadYandexMaps} = await import('./yandex-maps');
-    let finish = () => {};
-    const api = {ready: new Promise<void>((resolve) => { finish = resolve; })};
+    let finish!: () => void;
+    const api = {ready: new Promise<void>((resolve) => {
+      finish = resolve;
+    })};
     vi.stubGlobal('ymaps3', api);
     const loaded = loadYandexMaps();
     expect(loadYandexMaps()).toBe(loaded);

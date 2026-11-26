@@ -18,8 +18,12 @@ export function loadYandexMaps(): Promise<typeof ymaps3> {
   const script = document.createElement('script');
   script.src = url.href;
   pending = new Promise<void>((resolve, reject) => {
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error(UiText.MapUnavailable));
+    script.onload = () => {
+      resolve();
+    };
+    script.onerror = () => {
+      reject(new Error(UiText.MapUnavailable));
+    };
     document.head.append(script);
   }).then(async () => {
     await ymaps3.ready;
