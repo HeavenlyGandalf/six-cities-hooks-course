@@ -121,7 +121,6 @@ export const UiText = {
   ViewMap: 'Map',
   MapLabel: 'Map',
   MapUnavailable: 'Map is unavailable',
-  MapNote: 'Здесь - Яндекс Карты',
   PlacesToStayIn: 'places to stay in',
   SortBy: 'Sort by',
   SearchByTitle: 'Search by title',

@@ -2,7 +2,7 @@ import type {JSX} from 'react';
 import {useParams} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
-import MapStub from '../../components/map-stub/map-stub';
+import Map from '../../components/map/map';
 import OfferGallery from '../../components/offer-gallery/offer-gallery';
 import OfferHost from '../../components/offer-host/offer-host';
 import OfferReviews from '../../components/offer-reviews/offer-reviews';
@@ -92,9 +92,8 @@ function OfferContent({offer}: OfferContentProps): JSX.Element {
           </div>
         </div>
 
-        {/* Статичная схема из вёрстки до Яндекс Карт (история 5.4). */}
         <section className="container offer__map" aria-label={UiText.NearMapLabel}>
-          <MapStub pinCount={nearOffers.length} />
+          <Map city={offer.city} offers={[...nearOffers, offer]} activeOfferId={offer.id} />
         </section>
 
         <section className="container near-places" aria-labelledby="near-title">
