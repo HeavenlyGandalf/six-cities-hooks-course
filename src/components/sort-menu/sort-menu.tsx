@@ -26,7 +26,11 @@ function SortMenu({sort, onSortChange}: SortMenuProps): JSX.Element {
       triggerRef.current?.focus();
     }
   };
+  const isMenuEvent = (event: KeyboardEvent) => event.target instanceof Node && menuRef.current?.contains(event.target);
   const moveFocus = (event: KeyboardEvent, direction: number) => {
+    if (!isMenuEvent(event)) {
+      return;
+    }
     event.preventDefault();
     const index = SORT_OPTIONS.indexOf(focusedOption);
     const next = SORT_OPTIONS[(index + direction + SORT_OPTIONS.length) % SORT_OPTIONS.length];
@@ -48,6 +52,9 @@ function SortMenu({sort, onSortChange}: SortMenuProps): JSX.Element {
     moveFocus(event, -1);
   }, isOpen);
   useKeydown('Enter', (event) => {
+    if (!isMenuEvent(event)) {
+      return;
+    }
     event.preventDefault();
     selectOption(focusedOption, true);
   }, isOpen);
