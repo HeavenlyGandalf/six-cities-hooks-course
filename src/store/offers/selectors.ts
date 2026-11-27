@@ -3,5 +3,3 @@ import type {RootState} from '../store';
 
 export const selectCity = (state: RootState) => state[NameSpace.Offers].city;
 export const selectOffers = (state: RootState) => state[NameSpace.Offers].offers;
-export const selectCityOffers = (state: RootState) =>
-  selectOffers(state).filter((offer) => offer.city.name === selectCity(state));
