@@ -433,3 +433,23 @@ describe('city and sorting integration', () => {
     }
   });
 });
+
+describe('sort keyboard selection', () => {
+  it.each(['Enter', ' '])('returns focus to the trigger after selecting with %s', (key) => {
+    renderWithRouter(<MainPage />);
+    const trigger = screen.getByRole('button', {name: 'Sort by Popular'});
+    fireEvent.click(trigger);
+    const option = screen.getByRole('option', {name: 'Price: low to high'});
+    act(() => {
+      option.focus();
+    });
+    fireEvent.keyDown(option, {key});
+    expect(screen.getAllByRole('article').map((card) => card.querySelector('.place-card__title')?.textContent))
+      .toEqual(['Paris flat two', 'Paris flat one']);
+    expect(option).toHaveAttribute('aria-selected', 'true');
+    expect(trigger).toHaveTextContent('Price: low to high');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+});
