@@ -4,14 +4,16 @@ import {expect, it} from 'vitest';
 
 const HOOK_PATH = 'src/hooks/use-yandex-map/use-yandex-map.ts';
 
+// Разрешаем конфигурацию один раз при загрузке модуля, вне таймера отдельных проверок.
+// Typed rules и программа TypeScript здесь не запускаются.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- ESLint документирует результат как flat config, но его API возвращает неточный тип.
+const projectConfig: Linter.Config = await new ESLint().calculateConfigForFile(HOOK_PATH);
+const eslint = new ESLint({
+  overrideConfigFile: true,
+  overrideConfig: [{plugins: projectConfig.plugins}],
+});
+
 async function lintDirectives(source: string) {
-  // Разрешаем конфигурацию проекта, но не запускаем её typed rules и программу TypeScript.
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- ESLint документирует результат как flat config, но его API возвращает неточный тип.
-  const projectConfig: Linter.Config = await new ESLint().calculateConfigForFile(HOOK_PATH);
-  const eslint = new ESLint({
-    overrideConfigFile: true,
-    overrideConfig: [{plugins: projectConfig.plugins}],
-  });
   const directives = source.match(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g)
     ?.filter((comment) => /eslint-(?:disable|enable)/.test(comment)) ?? [];
   const results = await eslint.lintText(directives.join('\n'));
