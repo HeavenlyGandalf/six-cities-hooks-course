@@ -1,12 +1,14 @@
 import {act, fireEvent, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {UiText} from '../../const';
+import {SORT_OPTIONS, UiText} from '../../const';
 import {installMatchMedia, setWidth, TestWidth} from '../../mocks/match-media';
 import {renderWithRouter} from '../../mocks/render-with-router';
 import type {OfferPreview} from '../../types/offer';
 import {DEBOUNCE_DELAY_MS} from '../../variant';
 import MainPage from './main-page';
+import {CITY_CENTERS} from '../../mocks/cities';
+import type {City} from '../../types/offer';
 
 const {fixtureOffers} = vi.hoisted(() => {
   const createOffer = (id: string, title: string, cityName: string): OfferPreview => ({
@@ -24,12 +26,20 @@ const {fixtureOffers} = vi.hoisted(() => {
 
   return {
     fixtureOffers: [
-      createOffer('paris-1', 'Paris flat one', 'Paris'),
+      {...createOffer('paris-1', 'Paris flat one', 'Paris'), price: 200, rating: 3},
       createOffer('paris-2', 'Paris flat two', 'Paris'),
       createOffer('amsterdam-1', 'Amsterdam canal house', 'Amsterdam'),
     ],
   };
 });
+
+const mapRender = vi.fn();
+vi.mock('../../components/map/map', () => ({
+  default: (props: {city: City; offers: OfferPreview[]; activeOfferId: string | null}) => {
+    mapRender(props);
+    return <div data-testid="map" />;
+  },
+}));
 
 vi.mock('../../mocks/offers', () => ({offers: fixtureOffers, PARIS: fixtureOffers[0].city}));
 
@@ -357,5 +367,68 @@ describe('MainPage', () => {
       expect(screen.queryAllByRole('article')).toHaveLength(0);
       expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('0 places to stay in Paris');
     });
+  });
+});
+
+describe('city and sorting integration', () => {
+  it.each(['Paris', 'Cologne', 'Brussels', 'Amsterdam', 'Hamburg', 'Dusseldorf'] as const)(
+    'selects %s and keeps map, heading and cards consistent', (city) => {
+      renderWithRouter(<MainPage />);
+      fireEvent.mouseEnter(screen.getAllByRole('article')[0]);
+      fireEvent.click(screen.getByRole('link', {name: city}));
+      const count = fixtureOffers.filter((offer) => offer.city.name === city).length;
+      expect(screen.getByRole('heading', {level: 2})).toHaveTextContent(`${String(count)} places to stay in ${city}`);
+      expect(screen.queryAllByRole('article')).toHaveLength(count);
+      expect(screen.getByRole('link', {name: city})).toHaveClass('cities__link--active');
+      expect(mapRender).toHaveBeenLastCalledWith({
+        city: CITY_CENTERS[city],
+        offers: fixtureOffers.filter((offer) => offer.city.name === city),
+        activeOfferId: city === 'Paris' ? 'paris-1' : null,
+      });
+    });
+
+  it('opens and closes the menu and updates cards and map in all four orders', () => {
+    renderWithRouter(<MainPage />);
+    const button = screen.getByRole('button', {name: 'Sort by Popular'});
+    expect(button).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    const expectedOrders = [['paris-1', 'paris-2'], ['paris-2', 'paris-1'], ['paris-1', 'paris-2'], ['paris-2', 'paris-1']];
+    SORT_OPTIONS.forEach((option, index) => {
+      fireEvent.click(button);
+      expect(button).toHaveAttribute('aria-expanded', 'true');
+      fireEvent.click(screen.getByRole('option', {name: option}));
+      expect(button).toHaveTextContent(option);
+      expect(button).toHaveAttribute('aria-expanded', 'false');
+      const titles = screen.getAllByRole('article').map((card) => card.querySelector('.place-card__title')?.textContent);
+      const expected = expectedOrders[index].map((id) => fixtureOffers.find((offer) => offer.id === id));
+      expect(titles).toEqual(expected.map((offer) => offer?.title));
+      expect(mapRender.mock.lastCall?.[0].offers).toEqual(expected);
+    });
+  });
+
+  it('keeps typed search while choosing city and sort, then applies the delay inside the new city', () => {
+    vi.useFakeTimers();
+    try {
+      renderWithRouter(<MainPage />);
+      const search = screen.getByRole('searchbox');
+      fireEvent.change(search, {target: {value: 'canal'}});
+      fireEvent.click(screen.getByRole('link', {name: 'Amsterdam'}));
+      expect(search).toHaveValue('canal');
+      fireEvent.click(screen.getByRole('button', {name: 'Sort by Popular'}));
+      fireEvent.click(screen.getByRole('option', {name: 'Top rated first'}));
+      act(() => {
+        vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+      });
+      expect(screen.getAllByRole('article')).toHaveLength(1);
+      expect(mapRender.mock.lastCall?.[0].offers).toEqual([fixtureOffers[2]]);
+      fireEvent.change(search, {target: {value: 'missing'}});
+      act(() => {
+        vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+      });
+      expect(screen.queryAllByRole('article')).toHaveLength(0);
+      expect(mapRender.mock.lastCall?.[0]).toEqual({city: CITY_CENTERS.Amsterdam, offers: [], activeOfferId: null});
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
