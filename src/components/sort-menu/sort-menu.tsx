@@ -91,7 +91,7 @@ function SortMenu({sort, onSortChange}: SortMenuProps): JSX.Element {
             className={`sort__option${option === sort ? ' sort__option--active' : ''}${option === focusedOption ? ' sort__option--focused' : ''}`}
             role="option"
             aria-selected={option === sort}
-            tabIndex={0}
+            tabIndex={option === focusedOption ? 0 : -1}
             onFocus={() => {
               setFocusedOption(option);
             }}
