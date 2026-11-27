@@ -453,3 +453,14 @@ describe('sort keyboard selection', () => {
     expect(trigger).toHaveFocus();
   });
 });
+
+describe('modified city link clicks', () => {
+  it.each(['ctrlKey', 'metaKey', 'shiftKey', 'altKey'])('keeps the current tab city on %s click', (modifier) => {
+    renderWithRouter(<MainPage />);
+    fireEvent.click(screen.getByRole('link', {name: 'Amsterdam'}), {[modifier]: true});
+    expect(screen.getByRole('link', {name: 'Paris'})).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('2 places to stay in Paris');
+    expect(screen.getAllByRole('article')).toHaveLength(2);
+    expect(mapRender.mock.lastCall?.[0].city).toBe(CITY_CENTERS.Paris);
+  });
+});
