@@ -1,9 +1,7 @@
-import type {City, OfferPreview} from '../types/offer';
+import {CITY_CENTERS} from './cities';
+import type {OfferPreview} from '../types/offer';
 
-export const PARIS: City = {
-  name: 'Paris',
-  location: {latitude: 48.85661, longitude: 2.351499, zoom: 13},
-};
+export const PARIS = CITY_CENTERS.Paris;
 
 export const offers: OfferPreview[] = [
   {

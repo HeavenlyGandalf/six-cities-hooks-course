@@ -1,3 +1,4 @@
+import {SortType, type SortOption} from '../const';
 import type {OfferPreview} from '../types/offer';
 
 export interface CityGroup {
@@ -34,4 +35,19 @@ export function filterByTitle(offers: OfferPreview[], query: string): OfferPrevi
     return offers;
   }
   return offers.filter((offer) => offer.title.toLowerCase().includes(normalizedQuery));
+}
+
+// sort работает с копией; стандартная стабильная сортировка сохраняет порядок равных значений.
+export function sortOffers(offers: OfferPreview[], sort: SortOption): OfferPreview[] {
+  const result = [...offers];
+  switch (sort) {
+    case SortType.PriceAscending:
+      return result.sort((first, second) => first.price - second.price);
+    case SortType.PriceDescending:
+      return result.sort((first, second) => second.price - first.price);
+    case SortType.RatingDescending:
+      return result.sort((first, second) => second.rating - first.rating);
+    default:
+      return result;
+  }
 }
