@@ -19,12 +19,9 @@ function SortMenu({sort, onSortChange}: SortMenuProps): JSX.Element {
     setIsOpen(false);
     triggerRef.current?.focus();
   };
-  const selectOption = (option: SortOption, returnFocus: boolean) => {
+  const selectOption = (option: SortOption) => {
     onSortChange(option);
-    setIsOpen(false);
-    if (returnFocus) {
-      triggerRef.current?.focus();
-    }
+    closeWithFocus();
   };
   const isMenuEvent = (event: KeyboardEvent) => event.target instanceof Node && menuRef.current?.contains(event.target);
   const moveFocus = (event: KeyboardEvent, direction: number) => {
@@ -56,7 +53,7 @@ function SortMenu({sort, onSortChange}: SortMenuProps): JSX.Element {
       return;
     }
     event.preventDefault();
-    selectOption(focusedOption, true);
+    selectOption(focusedOption);
   }, isOpen);
 
   return (
@@ -96,12 +93,12 @@ function SortMenu({sort, onSortChange}: SortMenuProps): JSX.Element {
               setFocusedOption(option);
             }}
             onClick={() => {
-              selectOption(option, false);
+              selectOption(option);
             }}
             onKeyDown={(event) => {
               if (event.key === ' ') {
                 event.preventDefault();
-                selectOption(option, true);
+                selectOption(option);
               }
             }}
           >
