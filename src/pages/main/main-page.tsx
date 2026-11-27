@@ -1,4 +1,8 @@
-import {useState, type JSX} from 'react';
+import {useAppDispatch, useAppSelector} from '../../hooks/use-app-store/use-app-store';
+import {changeCity} from '../../store/offers/offers';
+import {selectCity, selectOffers} from '../../store/offers/selectors';
+import {CITY_CENTERS} from '../../mocks/cities';
+import {useRef, useState, type JSX} from 'react';
 import {Link} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
@@ -6,16 +10,11 @@ import Map from '../../components/map/map';
 import OffersList from '../../components/offers-list/offers-list';
 import SearchField from '../../components/search-field/search-field';
 import {useMediaQuery} from '../../hooks/use-media-query/use-media-query';
-import {AppRoute, CITIES, DEFAULT_CITY, DEFAULT_SORT, PHONE_MEDIA_QUERY, SORT_OPTIONS, UiText, ViewMode, type ViewModeValue} from '../../const';
-import {offers, PARIS} from '../../mocks/offers';
+import {AppRoute, CITIES, DEFAULT_SORT, PHONE_MEDIA_QUERY, SORT_OPTIONS, UiText, ViewMode, type SortOption, type ViewModeValue} from '../../const';
 import {stubUser} from '../../mocks/user';
 import {formatPageTitle} from '../../utils/format';
-import {filterByTitle} from '../../utils/offers';
+import {filterByTitle, sortOffers} from '../../utils/offers';
 
-// Город и сортировка пока зафиксированы: ссылки городов ведут на главную,
-// выбор города и сортировка появятся вместе со store.
-// Активная карточка и маркер используют один id.
-// Строка поиска приходит из SearchField уже с задержкой; на этапе 6 она переедет в адрес (H4).
 // На телефоне переключатель List/Map монтирует только выбранный вид (H12); id радио остались,
 // чтобы стили вёрстки (:has(#view-map:checked) в pages/main.css) работали как раньше.
 // Вид хранится и на планшете: при возврате на телефон выбор не сбрасывается.
@@ -28,7 +27,17 @@ function MainPage(): JSX.Element {
   const isPhone = useMediaQuery(PHONE_MEDIA_QUERY);
   const isListShown = !isPhone || viewMode === ViewMode.List;
   const isMapShown = !isPhone || viewMode === ViewMode.Map;
-  const activeCity = DEFAULT_CITY;
+  const dispatch = useAppDispatch();
+  const activeCity = useAppSelector(selectCity);
+  const offers = useAppSelector(selectOffers);
+  const [sort, setSort] = useState<SortOption>(DEFAULT_SORT);
+  const [isSortOpen, setIsSortOpen] = useState(false);
+  const sortTriggerRef = useRef<HTMLButtonElement>(null);
+  const [previousCity, setPreviousCity] = useState(activeCity);
+  if (previousCity !== activeCity) {
+    setPreviousCity(activeCity);
+    setActiveOfferId(null);
+  }
 
   // Список пропадает и по клику «Map», и при сужении до телефона с выбранной картой.
   // Поле поиска размонтируется вместе со списком и отменяет ожидающий поиск,
@@ -45,7 +54,7 @@ function MainPage(): JSX.Element {
   }
   const cityOffers = offers.filter((offer) => offer.city.name === activeCity);
   // При непустом поиске заголовок считает найденные предложения (FR-2).
-  const foundOffers = filterByTitle(cityOffers, searchQuery);
+  const foundOffers = sortOffers(filterByTitle(cityOffers, searchQuery), sort);
   const favoriteCount = offers.filter((offer) => offer.isFavorite).length;
 
   return (
@@ -65,6 +74,12 @@ function MainPage(): JSX.Element {
                     <Link
                       className={`cities__link${isActive ? ' cities__link--active' : ''}`}
                       to={AppRoute.Main}
+                      onClick={(event) => {
+                        if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+                          return;
+                        }
+                        dispatch(changeCity(city));
+                      }}
                       aria-current={isActive ? 'page' : undefined}
                     >
                       {city}
@@ -106,7 +121,7 @@ function MainPage(): JSX.Element {
 
           {isMapShown && (
             <section className="places-layout__map" aria-label={UiText.MapLabel}>
-              <Map city={PARIS} offers={foundOffers} activeOfferId={activeOfferId} />
+              <Map city={CITY_CENTERS[activeCity]} offers={foundOffers} activeOfferId={activeOfferId} />
             </section>
           )}
 
@@ -118,27 +133,44 @@ function MainPage(): JSX.Element {
                 </h2>
                 <div className="places__tools">
                   <SearchField value={searchText} onValueChange={setSearchText} onSearch={setSearchQuery} />
-                  <div className="sort">
+                  <div className={`sort${isSortOpen ? ' sort--opened' : ''}`}>
                     <span className="sort__caption" id="sort-caption">{UiText.SortBy}</span>
                     <button
                       className="sort__current"
+                      ref={sortTriggerRef}
                       type="button"
                       aria-haspopup="listbox"
-                      aria-expanded="false"
+                      aria-expanded={isSortOpen}
+                      onClick={() => {
+                        setIsSortOpen(!isSortOpen);
+                      }}
                       aria-labelledby="sort-caption sort-current"
                     >
-                      <span id="sort-current">{DEFAULT_SORT}</span>
+                      <span id="sort-current">{sort}</span>
                       <svg className="sort__arrow" aria-hidden="true"><use href="#icon-arrow" /></svg>
                     </button>
-                    <ul className="sort__list" role="listbox" aria-labelledby="sort-caption">
+                    <ul className="sort__list" hidden={!isSortOpen} role="listbox" aria-labelledby="sort-caption">
                       {SORT_OPTIONS.map((option) => {
-                        const isActive = option === DEFAULT_SORT;
+                        const isActive = option === sort;
                         return (
                           <li
                             key={option}
                             className={`sort__option${isActive ? ' sort__option--active' : ''}`}
                             role="option"
                             aria-selected={isActive}
+                            tabIndex={0}
+                            onClick={() => {
+                              setSort(option);
+                              setIsSortOpen(false);
+                            }}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                setSort(option);
+                                setIsSortOpen(false);
+                                sortTriggerRef.current?.focus();
+                              }
+                            }}
                           >
                             {option}
                           </li>

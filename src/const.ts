@@ -44,16 +44,18 @@ export type CityName = typeof CITIES[number];
 // При первом открытии выбран Paris (course/PROJECT.md §3.1).
 export const DEFAULT_CITY: CityName = 'Paris';
 
-export const SORT_OPTIONS = [
-  'Popular',
-  'Price: low to high',
-  'Price: high to low',
-  'Top rated first',
-] as const;
+export const NameSpace = {Offers: 'offers'} as const;
 
-export type SortOption = typeof SORT_OPTIONS[number];
+export const SortType = {
+  Popular: 'Popular',
+  PriceAscending: 'Price: low to high',
+  PriceDescending: 'Price: high to low',
+  RatingDescending: 'Top rated first',
+} as const;
 
-export const DEFAULT_SORT: SortOption = 'Popular';
+export type SortOption = typeof SortType[keyof typeof SortType];
+export const SORT_OPTIONS = Object.values(SortType);
+export const DEFAULT_SORT: SortOption = SortType.Popular;
 
 // Префикс адреса предложения: из него собираются и ссылка, и шаблон маршрута.
 const OFFER_PATH = '/offer';

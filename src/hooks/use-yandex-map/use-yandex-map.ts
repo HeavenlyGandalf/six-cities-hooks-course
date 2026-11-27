@@ -41,10 +41,8 @@ export function useYandexMap(
       const location = initialCityRef.current.location;
       const map = new api.YMap(containerRef.current, {location: {center: toLngLat(location), zoom: location.zoom}});
       liveMapRef.current = map;
-      /* eslint-disable @typescript-eslint/no-unsafe-class-instance-assignment -- В SDK слои реализуют YMapEntity через implements и создаются его конструкторами. */
       map.addChild(new api.YMapDefaultSchemeLayer({}));
       map.addChild(new api.YMapDefaultFeaturesLayer({}));
-      /* eslint-enable @typescript-eslint/no-unsafe-class-instance-assignment */
       setState({status: 'ready', map});
     }).catch(() => {
       if (!cancelled) {
@@ -74,14 +72,12 @@ export function useYandexMap(
     const markers = offers.map(({id, location}) => {
       const active = id === activeOfferId;
       const marker = new ymaps3.YMapMarker({coordinates: toLngLat(location), zIndex: Number(active)}, createPin(active));
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-class-instance-assignment -- YMapMarker из SDK реализует контракт YMapEntity.
       map.addChild(marker);
       return marker;
     });
     return () => {
       // destroy уже снял дочерние объекты при размонтировании карты.
       if (liveMapRef.current === map) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-class-instance-assignment -- Снимаем те же экземпляры YMapMarker, которые добавили в карту.
         markers.forEach((marker) => map.removeChild(marker));
       }
     };

@@ -1,3 +1,6 @@
+import {createStore} from './store/store';
+import {fillOffers} from './store/offers/offers';
+import {offers} from './mocks/offers';
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import {createBrowserRouter} from 'react-router';
@@ -20,10 +23,13 @@ if (!rootElement) {
   throw new Error(`Element #${ROOT_ELEMENT_ID} not found`);
 }
 
+const store = createStore();
+store.dispatch(fillOffers(offers));
+
 const router = createBrowserRouter(createAppRoutes());
 
 createRoot(rootElement).render(
   <StrictMode>
-    <App router={router} />
+    <App router={router} store={store} />
   </StrictMode>,
 );

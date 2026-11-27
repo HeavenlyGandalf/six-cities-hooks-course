@@ -1,3 +1,6 @@
+import {createStore} from '../../store/store';
+import {fillOffers} from '../../store/offers/offers';
+import {offers} from '../../mocks/offers';
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {createMemoryRouter, type RouteObject} from 'react-router';
@@ -11,7 +14,9 @@ const [offer] = fullOffers;
 
 function renderRoute(route: string, routes: RouteObject[] = createAppRoutes()) {
   const router = createMemoryRouter(routes, {initialEntries: [route]});
-  render(<App router={router} />);
+  const store = createStore();
+  store.dispatch(fillOffers(offers));
+  render(<App router={router} store={store} />);
   return router;
 }
 

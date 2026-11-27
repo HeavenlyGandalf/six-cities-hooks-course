@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
+import {SortType} from '../const';
 import type {OfferPreview} from '../types/offer';
-import {filterByTitle, getNearOffers, groupByCity} from './offers';
+import {filterByTitle, getNearOffers, groupByCity, sortOffers} from './offers';
 
 function createOffer(id: string, cityName: string): OfferPreview {
   return {
@@ -71,5 +72,25 @@ describe('filterByTitle', () => {
 
   it('returns an empty list when nothing matches', () => {
     expect(filterByTitle(offers, 'castle')).toEqual([]);
+  });
+});
+
+describe('sortOffers', () => {
+  const offers = [
+    {...createOffer('a', 'Paris'), price: 120, rating: 3},
+    {...createOffer('b', 'Paris'), price: 80, rating: 5},
+    {...createOffer('c', 'Paris'), price: 120, rating: 5},
+  ];
+
+  it.each([
+    [SortType.Popular, ['a', 'b', 'c']],
+    [SortType.PriceAscending, ['b', 'a', 'c']],
+    [SortType.PriceDescending, ['a', 'c', 'b']],
+    [SortType.RatingDescending, ['b', 'c', 'a']],
+  ])('sorts by %s without changing the source or equal values order', (sort, ids) => {
+    const source = structuredClone(offers);
+    expect(sortOffers(offers, sort).map((offer) => offer.id)).toEqual(ids);
+    expect(offers).toEqual(source);
+    expect(sortOffers([], sort)).toEqual([]);
   });
 });
