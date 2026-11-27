@@ -33,7 +33,7 @@ const {fixtureOffers} = vi.hoisted(() => {
   };
 });
 
-const mapRender = vi.fn();
+const mapRender = vi.fn<(props: {city: City; offers: OfferPreview[]; activeOfferId: string | null}) => void>();
 vi.mock('../../components/map/map', () => ({
   default: (props: {city: City; offers: OfferPreview[]; activeOfferId: string | null}) => {
     mapRender(props);
@@ -392,18 +392,19 @@ describe('city and sorting integration', () => {
     const button = screen.getByRole('button', {name: 'Sort by Popular'});
     expect(button).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    const offersById = new Map(fixtureOffers.map((offer) => [offer.id, offer]));
     const expectedOrders = [['paris-1', 'paris-2'], ['paris-2', 'paris-1'], ['paris-1', 'paris-2'], ['paris-2', 'paris-1']];
-    SORT_OPTIONS.forEach((option, index) => {
+    for (const [index, option] of SORT_OPTIONS.entries()) {
       fireEvent.click(button);
       expect(button).toHaveAttribute('aria-expanded', 'true');
       fireEvent.click(screen.getByRole('option', {name: option}));
       expect(button).toHaveTextContent(option);
       expect(button).toHaveAttribute('aria-expanded', 'false');
       const titles = screen.getAllByRole('article').map((card) => card.querySelector('.place-card__title')?.textContent);
-      const expected = expectedOrders[index].map((id) => fixtureOffers.find((offer) => offer.id === id));
+      const expected = expectedOrders[index].map((id) => offersById.get(id));
       expect(titles).toEqual(expected.map((offer) => offer?.title));
       expect(mapRender.mock.lastCall?.[0].offers).toEqual(expected);
-    });
+    }
   });
 
   it('keeps typed search while choosing city and sort, then applies the delay inside the new city', () => {
