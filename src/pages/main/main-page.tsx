@@ -2,7 +2,7 @@ import {useAppDispatch, useAppSelector} from '../../hooks/use-app-store/use-app-
 import {changeCity} from '../../store/offers/offers';
 import {selectCity, selectOffers} from '../../store/offers/selectors';
 import {CITY_CENTERS} from '../../mocks/cities';
-import {useState, type JSX} from 'react';
+import {useRef, useState, type JSX} from 'react';
 import {Link} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
@@ -32,6 +32,7 @@ function MainPage(): JSX.Element {
   const offers = useAppSelector(selectOffers);
   const [sort, setSort] = useState<SortOption>(DEFAULT_SORT);
   const [isSortOpen, setIsSortOpen] = useState(false);
+  const sortTriggerRef = useRef<HTMLButtonElement>(null);
   const [previousCity, setPreviousCity] = useState(activeCity);
   if (previousCity !== activeCity) {
     setPreviousCity(activeCity);
@@ -133,6 +134,7 @@ function MainPage(): JSX.Element {
                     <span className="sort__caption" id="sort-caption">{UiText.SortBy}</span>
                     <button
                       className="sort__current"
+                      ref={sortTriggerRef}
                       type="button"
                       aria-haspopup="listbox"
                       aria-expanded={isSortOpen}
@@ -163,6 +165,7 @@ function MainPage(): JSX.Element {
                                 event.preventDefault();
                                 setSort(option);
                                 setIsSortOpen(false);
+                                sortTriggerRef.current?.focus();
                               }
                             }}
                           >
