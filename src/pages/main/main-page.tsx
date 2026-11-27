@@ -2,15 +2,16 @@ import {useAppDispatch, useAppSelector} from '../../hooks/use-app-store/use-app-
 import {changeCity} from '../../store/offers/offers';
 import {selectCity, selectOffers} from '../../store/offers/selectors';
 import {CITY_CENTERS} from '../../mocks/cities';
-import {useRef, useState, type JSX} from 'react';
+import {useState, type JSX} from 'react';
 import {Link} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import Map from '../../components/map/map';
 import OffersList from '../../components/offers-list/offers-list';
 import SearchField from '../../components/search-field/search-field';
+import SortMenu from '../../components/sort-menu/sort-menu';
 import {useMediaQuery} from '../../hooks/use-media-query/use-media-query';
-import {AppRoute, CITIES, DEFAULT_SORT, PHONE_MEDIA_QUERY, SORT_OPTIONS, UiText, ViewMode, type SortOption, type ViewModeValue} from '../../const';
+import {AppRoute, CITIES, DEFAULT_SORT, PHONE_MEDIA_QUERY, UiText, ViewMode, type SortOption, type ViewModeValue} from '../../const';
 import {stubUser} from '../../mocks/user';
 import {formatPageTitle} from '../../utils/format';
 import {filterByTitle, sortOffers} from '../../utils/offers';
@@ -31,8 +32,6 @@ function MainPage(): JSX.Element {
   const activeCity = useAppSelector(selectCity);
   const offers = useAppSelector(selectOffers);
   const [sort, setSort] = useState<SortOption>(DEFAULT_SORT);
-  const [isSortOpen, setIsSortOpen] = useState(false);
-  const sortTriggerRef = useRef<HTMLButtonElement>(null);
   const [previousCity, setPreviousCity] = useState(activeCity);
   if (previousCity !== activeCity) {
     setPreviousCity(activeCity);
@@ -133,51 +132,7 @@ function MainPage(): JSX.Element {
                 </h2>
                 <div className="places__tools">
                   <SearchField value={searchText} onValueChange={setSearchText} onSearch={setSearchQuery} />
-                  <div className={`sort${isSortOpen ? ' sort--opened' : ''}`}>
-                    <span className="sort__caption" id="sort-caption">{UiText.SortBy}</span>
-                    <button
-                      className="sort__current"
-                      ref={sortTriggerRef}
-                      type="button"
-                      aria-haspopup="listbox"
-                      aria-expanded={isSortOpen}
-                      onClick={() => {
-                        setIsSortOpen(!isSortOpen);
-                      }}
-                      aria-labelledby="sort-caption sort-current"
-                    >
-                      <span id="sort-current">{sort}</span>
-                      <svg className="sort__arrow" aria-hidden="true"><use href="#icon-arrow" /></svg>
-                    </button>
-                    <ul className="sort__list" hidden={!isSortOpen} role="listbox" aria-labelledby="sort-caption">
-                      {SORT_OPTIONS.map((option) => {
-                        const isActive = option === sort;
-                        return (
-                          <li
-                            key={option}
-                            className={`sort__option${isActive ? ' sort__option--active' : ''}`}
-                            role="option"
-                            aria-selected={isActive}
-                            tabIndex={0}
-                            onClick={() => {
-                              setSort(option);
-                              setIsSortOpen(false);
-                            }}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault();
-                                setSort(option);
-                                setIsSortOpen(false);
-                                sortTriggerRef.current?.focus();
-                              }
-                            }}
-                          >
-                            {option}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
+                  <SortMenu sort={sort} onSortChange={setSort} />
                 </div>
               </div>
 
