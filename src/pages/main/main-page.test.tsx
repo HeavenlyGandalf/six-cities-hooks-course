@@ -464,3 +464,45 @@ describe('modified city link clicks', () => {
     expect(mapRender.mock.lastCall?.[0].city).toBe(CITY_CENTERS.Paris);
   });
 });
+
+describe('sort menu lifecycle integration', () => {
+  it('applies arrow selection to cards and map and preserves it across List/Map', async () => {
+    installMatchMedia(TestWidth.Phone);
+    const user = userEvent.setup();
+    renderWithRouter(<MainPage />);
+    const trigger = screen.getByRole('button', {name: 'Sort by Popular'});
+    await user.click(trigger);
+    await user.keyboard('{ArrowDown}{Enter}');
+    expect(screen.getAllByRole('article').map((card) => card.querySelector('.place-card__title')?.textContent))
+      .toEqual(['Paris flat two', 'Paris flat one']);
+    await user.click(trigger);
+    // Keyboard activation changes the view without an outside mousedown closing the menu first.
+    fireEvent.click(screen.getByRole('radio', {name: UiText.ViewMap}));
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', {name: /Sort by/})).not.toBeInTheDocument();
+    expect(mapRender.mock.lastCall?.[0].offers.map((offer) => offer.id)).toEqual(['paris-2', 'paris-1']);
+    fireEvent.keyDown(document, {key: 'ArrowDown'});
+    fireEvent.keyDown(document, {key: 'Enter'});
+    fireEvent.click(screen.getByRole('radio', {name: UiText.ViewList}));
+    const restored = screen.getByRole('button', {name: 'Sort by Price: low to high'});
+    expect(restored).toHaveAttribute('aria-expanded', 'false');
+    await user.click(restored);
+    expect(screen.getByRole('option', {name: 'Price: low to high'})).toHaveClass('sort__option--focused');
+  });
+
+  it('keeps the selected order when closing with outside mousedown and Escape', async () => {
+    const user = userEvent.setup();
+    renderWithRouter(<MainPage />);
+    const trigger = screen.getByRole('button', {name: 'Sort by Popular'});
+    await user.click(trigger);
+    await user.keyboard('{ArrowDown}');
+    fireEvent.mouseDown(document.body);
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    await user.click(trigger);
+    await user.keyboard('{ArrowDown}{Escape}');
+    expect(trigger).toHaveFocus();
+    expect(trigger).toHaveTextContent('Popular');
+    expect(screen.getAllByRole('article').map((card) => card.querySelector('.place-card__title')?.textContent))
+      .toEqual(['Paris flat one', 'Paris flat two']);
+  });
+});
