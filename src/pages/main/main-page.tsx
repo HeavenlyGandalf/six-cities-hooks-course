@@ -74,7 +74,10 @@ function MainPage(): JSX.Element {
                     <Link
                       className={`cities__link${isActive ? ' cities__link--active' : ''}`}
                       to={AppRoute.Main}
-                      onClick={() => {
+                      onClick={(event) => {
+                        if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
+                          return;
+                        }
                         dispatch(changeCity(city));
                       }}
                       aria-current={isActive ? 'page' : undefined}
