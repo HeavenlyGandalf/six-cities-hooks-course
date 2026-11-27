@@ -31,7 +31,7 @@ describe('SortMenu', () => {
     await user.click(trigger);
     const up = new KeyboardEvent('keydown', {key: 'ArrowUp', bubbles: true, cancelable: true});
     act(() => {
-      document.dispatchEvent(up);
+      trigger.dispatchEvent(up);
     });
     expect(up.defaultPrevented).toBe(true);
     const last = screen.getByRole('option', {name: SortType.RatingDescending});
@@ -69,6 +69,28 @@ describe('SortMenu', () => {
     await user.click(screen.getByRole('option', {name: SORT_OPTIONS[0]}));
     expect(onSortChange).toHaveBeenLastCalledWith(DEFAULT_SORT);
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it.each(['ArrowUp', 'ArrowDown', 'Enter'])('leaves %s on an external focused input alone after Tab', async (key) => {
+    const user = userEvent.setup();
+    const onSortChange = vi.fn();
+    render(<><SortMenu sort={DEFAULT_SORT} onSortChange={onSortChange} /><input aria-label="Other control" /></>);
+    const trigger = screen.getByRole('button');
+    await user.click(trigger);
+    await user.tab();
+    while (screen.getByRole('textbox') !== document.activeElement) {
+      await user.tab();
+    }
+    const input = screen.getByRole('textbox');
+    const event = new KeyboardEvent('keydown', {key, bubbles: true, cancelable: true});
+    act(() => { input.dispatchEvent(event); });
+    expect(event.defaultPrevented).toBe(false);
+    expect(input).toHaveFocus();
+    expect(onSortChange).not.toHaveBeenCalled();
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+    await user.keyboard('{Escape}');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(trigger).toHaveFocus();
   });
 
   it('uses updated props while open and removes subscriptions on unmount', async () => {
