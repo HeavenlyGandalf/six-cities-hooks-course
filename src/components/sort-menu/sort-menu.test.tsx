@@ -83,7 +83,9 @@ describe('SortMenu', () => {
     }
     const input = screen.getByRole('textbox');
     const event = new KeyboardEvent('keydown', {key, bubbles: true, cancelable: true});
-    act(() => { input.dispatchEvent(event); });
+    act(() => {
+      input.dispatchEvent(event);
+    });
     expect(event.defaultPrevented).toBe(false);
     expect(input).toHaveFocus();
     expect(onSortChange).not.toHaveBeenCalled();
