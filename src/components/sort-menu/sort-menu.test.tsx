@@ -101,6 +101,20 @@ describe('SortMenu', () => {
     expect(screen.getByRole('option', {name: SortType.PriceDescending})).toHaveFocus();
   });
 
+  it('restores trigger focus when a pointer selects after keyboard navigation', async () => {
+    const user = userEvent.setup();
+    const onSortChange = vi.fn();
+    render(<SortMenu sort={DEFAULT_SORT} onSortChange={onSortChange} />);
+    const trigger = screen.getByRole('button');
+    await user.click(trigger);
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByRole('option', {name: SortType.PriceAscending})).toHaveFocus();
+    await user.click(screen.getByRole('option', {name: SortType.PriceDescending}));
+    expect(onSortChange).toHaveBeenCalledExactlyOnceWith(SortType.PriceDescending);
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    expect(trigger).toHaveFocus();
+  });
+
   it('uses updated props while open and removes subscriptions on unmount', async () => {
     const user = userEvent.setup();
     const first = vi.fn();
