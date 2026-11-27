@@ -3,9 +3,10 @@ import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {YANDEX_MAPS_URL} from '../../const';
 import {offers} from '../../mocks/offers';
 import {installYmaps3} from '../../mocks/ymaps3';
+import type MapComponent from './map';
 
 // У загрузчика одно обещание на приложение, каждый тест начинает с чистого модуля.
-let Map: typeof import('./map').default;
+let Map: typeof MapComponent;
 beforeEach(async () => {
   vi.resetModules();
   ({default: Map} = await import('./map'));
