@@ -31,7 +31,7 @@ const {fixtureOffers} = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../mocks/offers', () => ({offers: fixtureOffers}));
+vi.mock('../../mocks/offers', () => ({offers: fixtureOffers, PARIS: fixtureOffers[0].city}));
 
 describe('MainPage', () => {
   it('puts the active city into the tab title', () => {

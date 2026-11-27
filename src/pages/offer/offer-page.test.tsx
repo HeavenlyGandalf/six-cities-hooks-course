@@ -42,6 +42,7 @@ function renderOfferPage(id: string) {
 describe('OfferPage', () => {
   afterEach(() => {
     userState.isSignedIn = false;
+    vi.unstubAllEnvs();
   });
 
   it('puts the offer title into the tab title in <head>', () => {
@@ -98,7 +99,8 @@ describe('OfferPage', () => {
     expect(within(section).queryByRole('button', {name: 'Submit'})).not.toBeInTheDocument();
   });
 
-  it('shows 3 nearby offers without the current one and a map scheme with 3 + 1 pins', () => {
+  it('shows 3 nearby offers without the current one and reports an unavailable map without a key', async () => {
+    vi.stubEnv('VITE_YANDEX_MAPS_KEY', '');
     renderOfferPage(offer.id);
 
     const near = screen.getByRole('region', {name: 'Other places in the neighbourhood'});
@@ -108,9 +110,7 @@ describe('OfferPage', () => {
       expect(link).not.toHaveAttribute('href', `/offer/${offer.id}`);
     });
     const map = screen.getByRole('region', {name: 'Map of places nearby'});
-    expect(within(map).getByText('Здесь - Яндекс Карты')).toBeInTheDocument();
-    expect(map.querySelectorAll('.map__pin:not(.map__pin--active)')).toHaveLength(cards.length);
-    expect(map.querySelectorAll('.map__pin--active')).toHaveLength(1);
+    expect(await within(map).findByText('Map is unavailable')).toBeInTheDocument();
   });
 
   it('does not highlight a nearby card on hover or focus', async () => {

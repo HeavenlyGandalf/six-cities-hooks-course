@@ -1,6 +1,6 @@
 import type {City, OfferPreview} from '../types/offer';
 
-const PARIS: City = {
+export const PARIS: City = {
   name: 'Paris',
   location: {latitude: 48.85661, longitude: 2.351499, zoom: 13},
 };

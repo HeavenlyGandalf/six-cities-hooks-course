@@ -2,18 +2,19 @@ import {useState, type JSX} from 'react';
 import {Link} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
+import Map from '../../components/map/map';
 import OffersList from '../../components/offers-list/offers-list';
 import SearchField from '../../components/search-field/search-field';
 import {useMediaQuery} from '../../hooks/use-media-query/use-media-query';
 import {AppRoute, CITIES, DEFAULT_CITY, DEFAULT_SORT, PHONE_MEDIA_QUERY, SORT_OPTIONS, UiText, ViewMode, type ViewModeValue} from '../../const';
-import {offers} from '../../mocks/offers';
+import {offers, PARIS} from '../../mocks/offers';
 import {stubUser} from '../../mocks/user';
 import {formatPageTitle} from '../../utils/format';
 import {filterByTitle} from '../../utils/offers';
 
 // Город и сортировка пока зафиксированы: ссылки городов ведут на главную,
 // выбор города и сортировка появятся вместе со store.
-// Активная карточка - локальное состояние страницы, позже её получит карта (H5).
+// Активная карточка и маркер используют один id.
 // Строка поиска приходит из SearchField уже с задержкой; на этапе 6 она переедет в адрес (H4).
 // На телефоне переключатель List/Map монтирует только выбранный вид (H12); id радио остались,
 // чтобы стили вёрстки (:has(#view-map:checked) в pages/main.css) работали как раньше.
@@ -103,12 +104,9 @@ function MainPage(): JSX.Element {
             </div>
           )}
 
-          {/* Заглушка карты без маркеров: Яндекс Карты подключаются в H5. */}
           {isMapShown && (
             <section className="places-layout__map" aria-label={UiText.MapLabel}>
-              <div className="map">
-                <span className="map__note">{UiText.MapNote}</span>
-              </div>
+              <Map city={PARIS} offers={foundOffers} activeOfferId={activeOfferId} />
             </section>
           )}
 
