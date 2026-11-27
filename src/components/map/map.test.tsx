@@ -1,9 +1,15 @@
 import {render, screen, waitFor} from '@testing-library/react';
-import {afterEach, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {YANDEX_MAPS_URL} from '../../const';
 import {offers} from '../../mocks/offers';
 import {installYmaps3} from '../../mocks/ymaps3';
-import Map from './map';
+
+// У загрузчика одно обещание на приложение, каждый тест начинает с чистого модуля.
+let Map: typeof import('./map').default;
+beforeEach(async () => {
+  vi.resetModules();
+  ({default: Map} = await import('./map'));
+});
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -16,6 +22,15 @@ it('shows a message in the map container when the key is missing', async () => {
   const message = await screen.findByText('Map is unavailable');
   expect(message).toHaveClass('map__note');
   expect(message.parentElement).toBe(container.querySelector('.map'));
+});
+
+it('shows a message when the API script fails to load', async () => {
+  vi.stubEnv('VITE_YANDEX_MAPS_KEY', 'test-key');
+  render(<Map city={offers[0].city} offers={offers} activeOfferId={null} />);
+  const script = document.head.querySelector(`script[src^="${YANDEX_MAPS_URL}"]`);
+  expect(script).toBeInstanceOf(HTMLScriptElement);
+  script?.dispatchEvent(new Event('error'));
+  expect(await screen.findByText('Map is unavailable')).toBeVisible();
 });
 
 it('mounts two independent maps after loading one shared script', async () => {
