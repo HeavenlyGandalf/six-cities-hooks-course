@@ -93,6 +93,14 @@ describe('SortMenu', () => {
     expect(trigger).toHaveFocus();
   });
 
+  it('tabs from the trigger to the selected non-first option', async () => {
+    const user = userEvent.setup();
+    render(<SortMenu sort={SortType.PriceDescending} onSortChange={vi.fn()} />);
+    await user.click(screen.getByRole('button'));
+    await user.tab();
+    expect(screen.getByRole('option', {name: SortType.PriceDescending})).toHaveFocus();
+  });
+
   it('uses updated props while open and removes subscriptions on unmount', async () => {
     const user = userEvent.setup();
     const first = vi.fn();
