@@ -183,3 +183,11 @@ export const PageTitle = {
   Login: 'Login',
   NotFound: '404',
 } as const;
+
+export const UrlParam = {Sort: 'sort', Query: 'q'} as const;
+export const SortCode = {
+  Popular: 'popular',
+  PriceAscending: 'price-asc',
+  PriceDescending: 'price-desc',
+  RatingDescending: 'top-rated',
+} as const;
