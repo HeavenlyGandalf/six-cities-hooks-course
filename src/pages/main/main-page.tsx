@@ -34,12 +34,12 @@ function MainPage(): JSX.Element {
   };
   const [searchText, setSearchText] = useState(searchQuery);
   const [previousLocationKey, setPreviousLocationKey] = useState(location.key);
-  const [searchResetKey, setSearchResetKey] = useState(location.key);
+  const [searchResetKey, setSearchResetKey] = useState(0);
   if (previousLocationKey !== location.key) {
     setPreviousLocationKey(location.key);
     if (navigationType === NavigationType.Pop) {
       setSearchText(searchQuery);
-      setSearchResetKey(location.key);
+      setSearchResetKey(searchResetKey + 1);
     }
   }
   const [viewMode, setViewMode] = useState<ViewModeValue>(ViewMode.List);
