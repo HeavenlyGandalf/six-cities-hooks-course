@@ -7,6 +7,7 @@ import {renderWithRouter} from '../../mocks/render-with-router';
 import type {OfferPreview} from '../../types/offer';
 import {DEBOUNCE_DELAY_MS} from '../../variant';
 import MainPage from './main-page';
+import {useLocation, useNavigate} from 'react-router';
 import {CITY_CENTERS} from '../../mocks/cities';
 import type {City} from '../../types/offer';
 
@@ -504,5 +505,211 @@ describe('sort menu lifecycle integration', () => {
     expect(trigger).toHaveTextContent('Popular');
     expect(screen.getAllByRole('article').map((card) => card.querySelector('.place-card__title')?.textContent))
       .toEqual(['Paris flat one', 'Paris flat two']);
+  });
+});
+
+
+function UrlControls() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  return (
+    <>
+      <output aria-label="url">{location.search}</output>
+      <button
+        type="button" onClick={() => {
+          void navigate('/?q=one');
+        }}
+      >Search entry
+      </button>
+      <button
+        type="button" onClick={() => {
+          void navigate(-1);
+        }}
+      >Back
+      </button>
+      <button
+        type="button" onClick={() => {
+          void navigate(1);
+        }}
+      >Forward
+      </button>
+    </>
+  );
+}
+
+describe('URL search and sorting', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function renderAt(route: string) {
+    renderWithRouter(<><MainPage /><UrlControls /></>, {route});
+  }
+
+  function chooseSort(name: string) {
+    fireEvent.click(screen.getByRole('button', {name: /Sort by/}));
+    fireEvent.click(screen.getByRole('option', {name}));
+  }
+
+  function typeSearch(value: string) {
+    fireEvent.change(screen.getByRole('searchbox'), {target: {value}});
+  }
+
+  function waitForSearch() {
+    act(() => {
+      vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+    });
+  }
+
+  it.each([
+    ['popular', 'Popular', ['paris-1', 'paris-2']],
+    ['price-asc', 'Price: low to high', ['paris-2', 'paris-1']],
+    ['price-desc', 'Price: high to low', ['paris-1', 'paris-2']],
+    ['top-rated', 'Top rated first', ['paris-2', 'paris-1']],
+    ['unknown', 'Popular', ['paris-1', 'paris-2']],
+  ])('restores a direct link with sort=%s', (code, label, ids) => {
+    renderAt(`/?sort=${code}&q=flat`);
+    expect(screen.getByRole('searchbox')).toHaveValue('flat');
+    expect(screen.getByRole('button', {name: `Sort by ${label}`})).toBeInTheDocument();
+    expect(screen.getByRole('heading', {level: 2})).toHaveTextContent('2 places to stay in Paris');
+    expect(mapRender.mock.lastCall?.[0].offers.map((offer) => offer.id)).toEqual(ids);
+    expect(screen.getByLabelText('url')).toHaveTextContent(`?sort=${code}&q=flat`);
+  });
+
+  it('replaces search, pushes sorting and restores field, cards and map through history', () => {
+    vi.useFakeTimers();
+    renderAt('/?other=keep');
+    typeSearch('one');
+    fireEvent.keyDown(screen.getByRole('searchbox'), {key: 'Enter'});
+    chooseSort('Price: low to high');
+    fireEvent.click(screen.getByRole('button', {name: 'Back'}));
+    expect(screen.getByRole('searchbox')).toHaveValue('one');
+    expect(screen.getByRole('button', {name: 'Sort by Popular'})).toBeInTheDocument();
+    expect(screen.getByLabelText('url')).toHaveTextContent('?other=keep&q=one');
+    expect(screen.getAllByRole('article')).toHaveLength(1);
+    expect(mapRender.mock.lastCall?.[0].offers).toEqual([fixtureOffers[0]]);
+    fireEvent.click(screen.getByRole('button', {name: 'Forward'}));
+    expect(screen.getByRole('button', {name: 'Sort by Price: low to high'})).toBeInTheDocument();
+    chooseSort('Popular');
+    typeSearch('');
+    expect(screen.getByLabelText('url')).toHaveTextContent('?other=keep');
+    expect(screen.getAllByRole('article')).toHaveLength(2);
+    waitForSearch();
+    expect(screen.getByLabelText('url')).toHaveTextContent('?other=keep');
+  });
+
+  it('cancels pending search on POP even when the applied query is unchanged', () => {
+    vi.useFakeTimers();
+    renderAt('/?q=flat');
+    chooseSort('Price: low to high');
+    typeSearch('one');
+    fireEvent.click(screen.getByRole('button', {name: 'Back'}));
+    expect(screen.getByRole('searchbox')).toHaveValue('flat');
+    waitForSearch();
+    expect(screen.getByRole('searchbox')).toHaveValue('flat');
+    expect(screen.getByLabelText('url')).toHaveTextContent('?q=flat');
+    expect(screen.getAllByRole('article')).toHaveLength(2);
+  });
+
+  it('keeps sorting selected during pending search and preserves parameters on city links', () => {
+    vi.useFakeTimers();
+    renderAt('/?other=keep');
+    typeSearch('canal');
+    chooseSort('Top rated first');
+    waitForSearch();
+    expect(screen.getByLabelText('url')).toHaveTextContent('?other=keep&sort=top-rated&q=canal');
+    const city = screen.getByRole('link', {name: 'Amsterdam'});
+    expect(city).toHaveAttribute('href', '/?other=keep&sort=top-rated&q=canal');
+    fireEvent.click(city);
+    expect(screen.getByRole('searchbox')).toHaveValue('canal');
+    expect(screen.getAllByRole('article')).toHaveLength(1);
+    expect(mapRender.mock.lastCall?.[0].offers).toEqual([fixtureOffers[2]]);
+  });
+
+  it('applies pending mobile search with replace and restores URL search after hiding the list', () => {
+    vi.useFakeTimers();
+    installMatchMedia(TestWidth.Phone);
+    renderAt('/?other=keep');
+    typeSearch('one');
+    fireEvent.click(screen.getByRole('radio', {name: UiText.ViewMap}));
+    expect(screen.getByLabelText('url')).toHaveTextContent('?other=keep&q=one');
+    expect(mapRender.mock.lastCall?.[0].offers).toEqual([fixtureOffers[0]]);
+    fireEvent.click(screen.getByRole('radio', {name: UiText.ViewList}));
+    expect(screen.getByRole('searchbox')).toHaveValue('one');
+    chooseSort('Top rated first');
+    fireEvent.click(screen.getByRole('button', {name: 'Back'}));
+    expect(screen.getByLabelText('url')).toHaveTextContent('?other=keep&q=one');
+    waitForSearch();
+    expect(screen.getByRole('searchbox')).toHaveValue('one');
+  });
+});
+
+describe('navigation to a different query through main links', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('cancels pending search after a logo PUSH with an unchanged empty query', () => {
+    vi.useFakeTimers();
+    renderWithRouter(<><MainPage /><UrlControls /></>);
+    fireEvent.change(screen.getByRole('searchbox'), {target: {value: 'house'}});
+    fireEvent.click(screen.getAllByRole('link', {name: UiText.LogoLabel})[0]);
+    expect(screen.getByRole('searchbox')).toHaveValue('');
+    act(() => {
+      vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+    });
+    expect(screen.getByLabelText('url')).toBeEmptyDOMElement();
+  });
+
+  it.each([false, true])('restores the empty URL query after a logo PUSH with map=%s', (isMap) => {
+    vi.useFakeTimers();
+    installMatchMedia(TestWidth.Phone);
+    renderWithRouter(<><MainPage /><UrlControls /></>, {route: '/?q=one'});
+    if (isMap) {
+      fireEvent.click(screen.getByRole('radio', {name: UiText.ViewMap}));
+    } else {
+      fireEvent.change(screen.getByRole('searchbox'), {target: {value: 'pending'}});
+    }
+    fireEvent.click(screen.getAllByRole('link', {name: UiText.LogoLabel})[0]);
+    if (isMap) {
+      fireEvent.click(screen.getByRole('radio', {name: UiText.ViewList}));
+    }
+    expect(screen.getByRole('searchbox')).toHaveValue('');
+    act(() => {
+      vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+    });
+    expect(screen.getByLabelText('url')).toBeEmptyDOMElement();
+    expect(screen.getAllByRole('article')).toHaveLength(2);
+  });
+});
+
+
+describe('search history replacement', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each(['debounce', 'Enter', 'clear', 'Map'])('replaces the search entry for %s', (method) => {
+    vi.useFakeTimers();
+    installMatchMedia(TestWidth.Phone);
+    renderWithRouter(<><MainPage /><UrlControls /></>, {route: '/?previous=entry'});
+    fireEvent.click(screen.getByRole('button', {name: 'Search entry'}));
+    fireEvent.change(screen.getByRole('searchbox'), {target: {value: method === 'clear' ? '' : 'two'}});
+    if (method === 'Enter') {
+      fireEvent.keyDown(screen.getByRole('searchbox'), {key: 'Enter'});
+    } else if (method === 'Map') {
+      fireEvent.click(screen.getByRole('radio', {name: UiText.ViewMap}));
+    } else {
+      act(() => {
+        vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+      });
+    }
+    if (method === 'clear') {
+      expect(screen.getByLabelText('url')).toBeEmptyDOMElement();
+    } else {
+      expect(screen.getByLabelText('url')).toHaveTextContent('?q=two');
+    }
+    fireEvent.click(screen.getByRole('button', {name: 'Back'}));
+    expect(screen.getByLabelText('url')).toHaveTextContent('?previous=entry');
   });
 });
