@@ -12,30 +12,35 @@ function Harness() {
       <output aria-label="value">{value}</output>
       <output aria-label="url">{location.search}</output>
       <button
+        type="button"
         onClick={() => {
           setValue(2);
         }}
       >push
       </button>
       <button
+        type="button"
         onClick={() => {
           setValue(3, {replace: true});
         }}
       >replace
       </button>
       <button
+        type="button"
         onClick={() => {
           setValue(1);
         }}
       >default
       </button>
       <button
+        type="button"
         onClick={() => {
           void navigate(-1);
         }}
       >back
       </button>
       <button
+        type="button"
         onClick={() => {
           void navigate(1);
         }}
