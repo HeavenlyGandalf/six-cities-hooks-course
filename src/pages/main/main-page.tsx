@@ -35,9 +35,12 @@ function MainPage(): JSX.Element {
   const [searchText, setSearchText] = useState(searchQuery);
   const [previousLocationKey, setPreviousLocationKey] = useState(location.key);
   const [searchResetKey, setSearchResetKey] = useState(0);
+  const [previousQuery, setPreviousQuery] = useState(searchQuery);
   if (previousLocationKey !== location.key) {
     setPreviousLocationKey(location.key);
-    if (navigationType === NavigationType.Pop) {
+    setPreviousQuery(searchQuery);
+    // Сортировка сохраняет черновик; переход к другому q восстанавливает поле.
+    if (navigationType === NavigationType.Pop || previousQuery !== searchQuery && searchText !== searchQuery) {
       setSearchText(searchQuery);
       setSearchResetKey(searchResetKey + 1);
     }
