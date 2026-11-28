@@ -2,8 +2,8 @@ import {useAppDispatch, useAppSelector} from '../../hooks/use-app-store/use-app-
 import {changeCity} from '../../store/offers/offers';
 import {selectCity, selectOffers} from '../../store/offers/selectors';
 import {CITY_CENTERS} from '../../mocks/cities';
-import {useState, type JSX} from 'react';
-import {Link} from 'react-router';
+import {useEffect, useState, type JSX} from 'react';
+import {Link, NavigationType, useLocation, useNavigationType} from 'react-router';
 import Footer from '../../components/footer/footer';
 import Header from '../../components/header/header';
 import Map from '../../components/map/map';
@@ -11,10 +11,12 @@ import OffersList from '../../components/offers-list/offers-list';
 import SearchField from '../../components/search-field/search-field';
 import SortMenu from '../../components/sort-menu/sort-menu';
 import {useMediaQuery} from '../../hooks/use-media-query/use-media-query';
-import {AppRoute, CITIES, DEFAULT_SORT, PHONE_MEDIA_QUERY, UiText, ViewMode, type SortOption, type ViewModeValue} from '../../const';
+import {AppRoute, CITIES, PHONE_MEDIA_QUERY, SortCode, UiText, UrlParam, ViewMode, type ViewModeValue} from '../../const';
 import {stubUser} from '../../mocks/user';
 import {formatPageTitle} from '../../utils/format';
 import {filterByTitle, sortOffers} from '../../utils/offers';
+import {useUrlState} from '../../hooks/use-url-state/use-url-state';
+import {parseQuery, parseSort, parseSortCode, serializeSort} from '../../utils/url-state';
 
 // На телефоне переключатель List/Map монтирует только выбранный вид (H12); id радио остались,
 // чтобы стили вёрстки (:has(#view-map:checked) в pages/main.css) работали как раньше.
@@ -22,8 +24,24 @@ import {filterByTitle, sortOffers} from '../../utils/offers';
 function MainPage(): JSX.Element {
   const [activeOfferId, setActiveOfferId] = useState<string | null>(null);
   // searchText - что набрано в поле, searchQuery - строка, уже применённая к списку после задержки.
-  const [searchText, setSearchText] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const location = useLocation();
+  const navigationType = useNavigationType();
+  const [searchQuery, setSearchQuery] = useUrlState(UrlParam.Query, '', parseQuery);
+  const [sortCode, setSortCode] = useUrlState(UrlParam.Sort, SortCode.Popular, parseSortCode);
+  const sort = parseSort(sortCode);
+  const applySearch = (query: string) => {
+    setSearchQuery(query, {replace: true});
+  };
+  const [searchText, setSearchText] = useState(searchQuery);
+  const [previousLocationKey, setPreviousLocationKey] = useState(location.key);
+  const [searchResetKey, setSearchResetKey] = useState(location.key);
+  if (previousLocationKey !== location.key) {
+    setPreviousLocationKey(location.key);
+    if (navigationType === NavigationType.Pop) {
+      setSearchText(searchQuery);
+      setSearchResetKey(location.key);
+    }
+  }
   const [viewMode, setViewMode] = useState<ViewModeValue>(ViewMode.List);
   const isPhone = useMediaQuery(PHONE_MEDIA_QUERY);
   const isListShown = !isPhone || viewMode === ViewMode.List;
@@ -31,7 +49,6 @@ function MainPage(): JSX.Element {
   const dispatch = useAppDispatch();
   const activeCity = useAppSelector(selectCity);
   const offers = useAppSelector(selectOffers);
-  const [sort, setSort] = useState<SortOption>(DEFAULT_SORT);
   const [previousCity, setPreviousCity] = useState(activeCity);
   if (previousCity !== activeCity) {
     setPreviousCity(activeCity);
@@ -42,15 +59,19 @@ function MainPage(): JSX.Element {
   // Поле поиска размонтируется вместе со списком и отменяет ожидающий поиск,
   // поэтому набранный текст применяется сразу: после «List» поле и список совпадают.
   // Активная карточка сбрасывается: курсор больше не над списком, карта не должна подсвечивать маркер.
-  // Состояние правится прямо в рендере при смене isListShown, без эффекта: React перерисует сразу.
+  // Подсветка сбрасывается при смене вида; запись URL выполняется после рендера.
   const [wasListShown, setWasListShown] = useState(isListShown);
   if (wasListShown !== isListShown) {
     setWasListShown(isListShown);
     if (!isListShown) {
-      setSearchQuery(searchText);
       setActiveOfferId(null);
     }
   }
+  useEffect(() => {
+    if (!isListShown && searchText !== searchQuery) {
+      setSearchQuery(searchText, {replace: true});
+    }
+  }, [isListShown, searchText, searchQuery, setSearchQuery]);
   const cityOffers = offers.filter((offer) => offer.city.name === activeCity);
   // При непустом поиске заголовок считает найденные предложения (FR-2).
   const foundOffers = sortOffers(filterByTitle(cityOffers, searchQuery), sort);
@@ -72,7 +93,7 @@ function MainPage(): JSX.Element {
                   <li key={city}>
                     <Link
                       className={`cities__link${isActive ? ' cities__link--active' : ''}`}
-                      to={AppRoute.Main}
+                      to={{pathname: AppRoute.Main, search: location.search}}
                       onClick={(event) => {
                         if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) {
                           return;
@@ -131,8 +152,12 @@ function MainPage(): JSX.Element {
                   {foundOffers.length} {UiText.PlacesToStayIn} {activeCity}
                 </h2>
                 <div className="places__tools">
-                  <SearchField value={searchText} onValueChange={setSearchText} onSearch={setSearchQuery} />
-                  <SortMenu sort={sort} onSortChange={setSort} />
+                  <SearchField key={searchResetKey} value={searchText} onValueChange={setSearchText} onSearch={applySearch} />
+                  <SortMenu
+                    sort={sort} onSortChange={(value) => {
+                      setSortCode(serializeSort(value));
+                    }}
+                  />
                 </div>
               </div>
 
