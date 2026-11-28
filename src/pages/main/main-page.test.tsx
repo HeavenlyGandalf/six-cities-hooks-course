@@ -517,6 +517,12 @@ function UrlControls() {
       <output aria-label="url">{location.search}</output>
       <button
         type="button" onClick={() => {
+          void navigate('/?q=one');
+        }}
+      >Search entry
+      </button>
+      <button
+        type="button" onClick={() => {
           void navigate(-1);
         }}
       >Back
@@ -643,6 +649,18 @@ describe('navigation to a different query through main links', () => {
     vi.useRealTimers();
   });
 
+  it('cancels pending search after a logo PUSH with an unchanged empty query', () => {
+    vi.useFakeTimers();
+    renderWithRouter(<><MainPage /><UrlControls /></>);
+    fireEvent.change(screen.getByRole('searchbox'), {target: {value: 'house'}});
+    fireEvent.click(screen.getAllByRole('link', {name: UiText.LogoLabel})[0]);
+    expect(screen.getByRole('searchbox')).toHaveValue('');
+    act(() => {
+      vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+    });
+    expect(screen.getByLabelText('url')).toBeEmptyDOMElement();
+  });
+
   it.each([false, true])('restores the empty URL query after a logo PUSH with map=%s', (isMap) => {
     vi.useFakeTimers();
     installMatchMedia(TestWidth.Phone);
@@ -662,5 +680,36 @@ describe('navigation to a different query through main links', () => {
     });
     expect(screen.getByLabelText('url')).toBeEmptyDOMElement();
     expect(screen.getAllByRole('article')).toHaveLength(2);
+  });
+});
+
+
+describe('search history replacement', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each(['debounce', 'Enter', 'clear', 'Map'])('replaces the search entry for %s', (method) => {
+    vi.useFakeTimers();
+    installMatchMedia(TestWidth.Phone);
+    renderWithRouter(<><MainPage /><UrlControls /></>, {route: '/?previous=entry'});
+    fireEvent.click(screen.getByRole('button', {name: 'Search entry'}));
+    fireEvent.change(screen.getByRole('searchbox'), {target: {value: method === 'clear' ? '' : 'two'}});
+    if (method === 'Enter') {
+      fireEvent.keyDown(screen.getByRole('searchbox'), {key: 'Enter'});
+    } else if (method === 'Map') {
+      fireEvent.click(screen.getByRole('radio', {name: UiText.ViewMap}));
+    } else {
+      act(() => {
+        vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+      });
+    }
+    if (method === 'clear') {
+      expect(screen.getByLabelText('url')).toBeEmptyDOMElement();
+    } else {
+      expect(screen.getByLabelText('url')).toHaveTextContent('?q=two');
+    }
+    fireEvent.click(screen.getByRole('button', {name: 'Back'}));
+    expect(screen.getByLabelText('url')).toHaveTextContent('?previous=entry');
   });
 });
