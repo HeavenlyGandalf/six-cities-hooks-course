@@ -191,3 +191,6 @@ export const SortCode = {
   PriceDescending: 'price-desc',
   RatingDescending: 'top-rated',
 } as const;
+
+// Намерение ссылки на главную: восстановить поле даже при неизменном q.
+export const RESET_SEARCH_NAVIGATION = 'reset-search';

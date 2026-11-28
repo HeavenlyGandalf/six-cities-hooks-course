@@ -11,7 +11,7 @@ import OffersList from '../../components/offers-list/offers-list';
 import SearchField from '../../components/search-field/search-field';
 import SortMenu from '../../components/sort-menu/sort-menu';
 import {useMediaQuery} from '../../hooks/use-media-query/use-media-query';
-import {AppRoute, CITIES, PHONE_MEDIA_QUERY, SortCode, UiText, UrlParam, ViewMode, type ViewModeValue} from '../../const';
+import {AppRoute, CITIES, PHONE_MEDIA_QUERY, RESET_SEARCH_NAVIGATION, SortCode, UiText, UrlParam, ViewMode, type ViewModeValue} from '../../const';
 import {stubUser} from '../../mocks/user';
 import {formatPageTitle} from '../../utils/format';
 import {filterByTitle, sortOffers} from '../../utils/offers';
@@ -40,7 +40,7 @@ function MainPage(): JSX.Element {
     setPreviousLocationKey(location.key);
     setPreviousQuery(searchQuery);
     // Сортировка сохраняет черновик; переход к другому q восстанавливает поле.
-    if (navigationType === NavigationType.Pop || previousQuery !== searchQuery && searchText !== searchQuery) {
+    if (navigationType === NavigationType.Pop || location.state === RESET_SEARCH_NAVIGATION || previousQuery !== searchQuery && searchText !== searchQuery) {
       setSearchText(searchQuery);
       setSearchResetKey(searchResetKey + 1);
     }
