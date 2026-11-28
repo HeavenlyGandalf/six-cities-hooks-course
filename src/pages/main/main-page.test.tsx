@@ -637,3 +637,30 @@ describe('URL search and sorting', () => {
     expect(screen.getByRole('searchbox')).toHaveValue('one');
   });
 });
+
+describe('navigation to a different query through main links', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it.each([false, true])('restores the empty URL query after a logo PUSH with map=%s', (isMap) => {
+    vi.useFakeTimers();
+    installMatchMedia(TestWidth.Phone);
+    renderWithRouter(<><MainPage /><UrlControls /></>, {route: '/?q=one'});
+    if (isMap) {
+      fireEvent.click(screen.getByRole('radio', {name: UiText.ViewMap}));
+    } else {
+      fireEvent.change(screen.getByRole('searchbox'), {target: {value: 'pending'}});
+    }
+    fireEvent.click(screen.getAllByRole('link', {name: UiText.LogoLabel})[0]);
+    if (isMap) {
+      fireEvent.click(screen.getByRole('radio', {name: UiText.ViewList}));
+    }
+    expect(screen.getByRole('searchbox')).toHaveValue('');
+    act(() => {
+      vi.advanceTimersByTime(DEBOUNCE_DELAY_MS);
+    });
+    expect(screen.getByLabelText('url')).toBeEmptyDOMElement();
+    expect(screen.getAllByRole('article')).toHaveLength(2);
+  });
+});
