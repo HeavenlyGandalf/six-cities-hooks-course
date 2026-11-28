@@ -1,10 +1,7 @@
-import {useEffect, useLayoutEffect, useRef} from 'react';
+import {useEffect, useEffectEvent} from 'react';
 
 export function useKeydown(key: string, handler: (event: KeyboardEvent) => void, isActive: boolean): void {
-  const handlerRef = useRef(handler);
-  useLayoutEffect(() => {
-    handlerRef.current = handler;
-  });
+  const onEvent = useEffectEvent(handler);
 
   useEffect(() => {
     if (!isActive) {
@@ -12,7 +9,7 @@ export function useKeydown(key: string, handler: (event: KeyboardEvent) => void,
     }
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === key) {
-        handlerRef.current(event);
+        onEvent(event);
       }
     };
     document.addEventListener('keydown', handleKeyDown);

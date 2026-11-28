@@ -1,14 +1,11 @@
-import {useEffect, useLayoutEffect, useRef, type RefObject} from 'react';
+import {useEffect, useEffectEvent, type RefObject} from 'react';
 
 export function useOutsideClick<T extends HTMLElement>(
   ref: RefObject<T | null>,
   handler: (event: MouseEvent) => void,
   isActive: boolean,
 ): void {
-  const handlerRef = useRef(handler);
-  useLayoutEffect(() => {
-    handlerRef.current = handler;
-  });
+  const onEvent = useEffectEvent(handler);
 
   useEffect(() => {
     if (!isActive) {
@@ -16,7 +13,7 @@ export function useOutsideClick<T extends HTMLElement>(
     }
     const handleMouseDown = (event: MouseEvent) => {
       if (ref.current && event.target instanceof Node && !ref.current.contains(event.target)) {
-        handlerRef.current(event);
+        onEvent(event);
       }
     };
     document.addEventListener('mousedown', handleMouseDown);
